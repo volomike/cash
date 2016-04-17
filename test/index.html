@@ -1,54 +1,115 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Cash</title>
-  <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.15.0.css">
-</head>
-<body>
-  <div id="qunit"></div>
-  <div id="qunit-fixture">
 
-    <div class="class-fixture"></div>
-    <fieldset class="tagname-fixture"></fieldset>
-    <div id="id-fixture"></div>
-    <div class="qsa-fixture"></div>
-    <div class="qsa-fixture"></div>
-    <div class="attr-fixture has-class-two has-class has-class-three" data-index="5" success="get"></div>
-    <div class="attr-fixture2 has-class-two has-class-three" data-index="6" success="get"></div>
+<!-- Mocha In Browser Setup -->
 
-    <span class="css-fixture" style="display: block; height: 50px; width: 50px; padding: 20px; margin: 20px; border: 5px solid black;"></span>
+<meta charset="utf-8" />
 
-    <input type="checkbox" class="prop-fixture" checked/>
+<link href="../node_modules/mocha/mocha.css" rel="stylesheet" />
+<style>
 
-    <a class="event-fixture">Click Me</a>
-    <a class="trigger-fixture">Click Me</a>
-    <a class="delegate-fixture"><span class="delegate-trigger">Click Me</span></a>
-    <a class="off-fixture">Click Me</a>
+  #mocha .suite { }
+  #mocha-report > .suite > ul .suite h1 {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  #mocha-report > .suite > ul > .suite > h1 {
+    color: #721582;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  #mocha-report > .suite > ul > .suite > ul > .suite h1 {
+    color: #455A64;
+    font-size: 12px;
+    margin-top: 5px;
+  }
+  .cov {
+    display: block;
+    padding: 30px;
+  }
+  #fixtures {
+    position: absolute;
+    margin-left: -9999em;
+  }
+</style>
 
-    <form class="form-fixture" name="form-fixture">
-      <input type="hidden" value="5" name="hidden"/>
-      <input type="text" value="text" name="text"/>
+<a class="cov" href="./coverage/index.html">
+  see code coverage results
+</a>
 
-      <input type="checkbox" value="yes" checked="checked" name="checkbox-yes" />
-      <input type="checkbox" value="no" name="checkbox-no" />
+<div id="mocha">
+</div>
 
-      <input type="radio" value="yes" checked="checked" name="radio" />
-      <input type="radio" value="no" name="radio" />
+<!-- / Mocha In Browser Setup -->
 
-      <select name="select">
-        <option value="not-selected">Not Selected</option>
-        <option value="selected" selected>Selected</option>
-      </select>
-      <select name="select-multiple" multiple>
-        <option value="option-1" selected>Selected</option>
-        <option value="option-2" selected>Selected</option>
-      </select>
-      <input type="submit" value="submit" name="submit"/>
-    </form>
 
-  </div>
-  <script type="text/javascript" src="../dist/cash.js"></script>
-  <script src="karma.test.js"></script>
-</body>
-</html>
+
+
+
+<!-- fixtures for Mocha / Karma -->
+
+<div id="fixtures" style="padding: 50px; font-family: sans-serif;">
+
+  <section id="selector-fixture">
+
+    <h1 data-attribute="data" attribute="functioning">Element Fixture</h1>
+    <h2 id="id-fixture">ID Fixture</h2>
+    <h3>Class Fixture</h3>
+    <h3 class="class-fixture">Class Fixture</h3>
+    <h3 class="class-fixture">Class Fixture</h3>
+    <p class="class-fixture">Class Fixture</p>
+
+    <input type="number">
+
+  </section>
+
+  <section id="traversal-fixture">
+
+    <div class="first"></div>
+    <div></div>
+    <div>
+      <div>
+        <div>
+          <div class="deep"></div>
+          <div class="deep"></div>
+        </div>
+        <div>
+          <div class="deep"></div>
+        </div>
+      </div>
+    </div>
+    <div></div>
+    <div class="last"></div>
+
+  </section>
+
+</div>
+
+<!-- / fixtures for Mocha / Karma -->
+
+
+
+
+
+<!-- Mocha In Browser Setup -->
+
+<script src="../dist/cash.js"></script>
+
+<script src="../node_modules/mocha/mocha.js"></script>
+<script src="../node_modules/should/should.js"></script>
+
+<script>mocha.setup('bdd');</script>
+
+<!-- our test scripts -->
+<script src="scripts/setup.js"></script>
+<script src="scripts/core.js"></script>
+<script src="scripts/selection.js"></script>
+<script src="scripts/collection.js"></script>
+<script src="scripts/traversal.js"></script>
+<script src="scripts/manipulation.js"></script>
+
+<script>
+  mocha.checkLeaks();
+  mocha.globals(['cash', '$']);
+  mocha.run();
+</script>
+
+<!-- / Mocha In Browser Setup -->

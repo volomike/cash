@@ -5,22 +5,25 @@ module.exports = function(config) {
 
     preprocessors: {
 
-      'test/testmocha.html': ['html2js'],
+      'test/index.html': ['html2js'],
       'dist/cash.js': ['coverage']
 
     },
 
     reporters: [
 
-        'dots',
+        'mocha',
         'coverage'
 
     ],
 
     coverageReporter: {
 
-        dir: 'dist/reports/coverage',
-        reporters: [{ type: 'html', subdir: 'report-html' }]
+        dir: 'test/coverage',
+        reporters: [
+            { type: 'text-summary' },
+            { type: 'html', subdir: './' }
+        ]
 
     },
 
@@ -46,8 +49,14 @@ module.exports = function(config) {
     files: [
 
         'dist/cash.js',
-        'test/testmocha.html',
-        'test/karma.test.js'
+        'test/index.html',
+
+        'test/scripts/setup.js',
+        'test/scripts/core.js',
+        'test/scripts/selection.js',
+        'test/scripts/collection.js',
+        'test/scripts/traversal.js',
+        'test/scripts/manipulation.js'
 
     ],
 
