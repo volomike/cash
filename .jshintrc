@@ -24,9 +24,11 @@
     "getData"    : true,
     "setData"    : true,
     "removeData" : true,
+    "mocha"      : true,
+    "should"     : true,
+    "describe"   : true,
     "describe"   : true,
     "it"         : true,
-    "should"     : true,
     "before"     : true,
     "beforeEach" : true
   },

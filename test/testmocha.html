@@ -38,6 +38,25 @@
     <h3 class="class-fixture">Class Fixture</h3>
     <p class="class-fixture">Class Fixture</p>
 
+    <section id="traversal-fixture">
+
+      <div class="first"></div>
+      <div></div>
+      <div>
+        <div>
+          <div>
+            <div class="deep"></div>
+            <div class="deep"></div>
+          </div>
+          <div>
+            <div class="deep"></div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+      <div class="last"></div>
+
+    </section>
 
     <input type="number">
 
@@ -53,7 +72,7 @@
   <script src="../node_modules/mocha/mocha.js"></script>
   <script src="../node_modules/should/should.js"></script>
 
-  <script>mocha.setup('bdd')</script>
+  <script>mocha.setup('bdd');</script>
   <script src="karma.test.js"></script>
   <script>
     mocha.checkLeaks();
