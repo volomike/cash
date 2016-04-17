@@ -1,12 +1,11 @@
 
+/**
+ * cash object.
+ * simply make sure cash exists, and properly
+ * binds to "$".
+ */
+
 describe( '💰 (cash-dom)', function() {
-
-
-    /**
-     * cash object.
-     * simply make sure cash exists, and properly
-     * binds to "$".
-     */
 
     describe( 'cash object', function() {
 
