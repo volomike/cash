@@ -1,15 +1,51 @@
 
-  <link href="../node_modules/mocha/mocha.css" rel="stylesheet" />
+  <meta charset="utf-8" />
 
-  <div id="mocha"></div>
+  <link href="../node_modules/mocha/mocha.css" rel="stylesheet" />
+  <style>
+    #mocha .suite {
+    }
+    #mocha-report > .suite > ul .suite h1 {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    #mocha-report > .suite > ul > .suite > h1 {
+      color: #721582;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    #mocha-report > .suite > ul > .suite > ul > .suite h1 {
+      color: #455A64;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  </style>
+
+  <div id="mocha">
+  </div>
+
+
+
+
 
   <div id="fixtures" style="padding: 50px; font-family: sans-serif;">
 
-    <h1>Element Fixture</h1>
+    <h1 data-attribute="data" attribute="functioning">Element Fixture</h1>
     <h2 id="id-fixture">ID Fixture</h2>
-    <h3 class="class-fixture">Class Fixture</h2>
+    <h3>Class Fixture</h3>
+    <h3 class="class-fixture">Class Fixture</h3>
+    <h3 class="class-fixture">Class Fixture</h3>
+    <p class="class-fixture">Class Fixture</p>
+
+
+    <input type="number">
 
   </div>
+
+
+
+
 
   <!-- Load the unminified Cash file. -->
   <script src="../dist/cash.js"></script>

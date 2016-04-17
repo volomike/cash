@@ -5,6 +5,7 @@
     "exports"    : true,
     "define"     : true,
     "cash"       : true,
+    "$"          : true,
     "fn"         : true,
     "win"        : true,
     "doc"        : true,
@@ -22,7 +23,12 @@
     "noop"       : true,
     "getData"    : true,
     "setData"    : true,
-    "removeData" : true
+    "removeData" : true,
+    "describe"   : true,
+    "it"         : true,
+    "should"     : true,
+    "before"     : true,
+    "beforeEach" : true
   },
 
   "bitwise"       : true,
