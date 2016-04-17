@@ -53,6 +53,7 @@ module.exports = function(config) {
 
         'test/scripts/setup.js',
         'test/scripts/core.js',
+        'test/scripts/utilities.js',
         'test/scripts/selection.js',
         'test/scripts/collection.js',
         'test/scripts/traversal.js',
