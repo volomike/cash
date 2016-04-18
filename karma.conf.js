@@ -57,6 +57,7 @@ module.exports = function(config) {
         'test/scripts/selection.js',
         'test/scripts/collection.js',
         'test/scripts/traversal.js',
+        'test/scripts/attributes.js',
         'test/scripts/manipulation.js'
 
     ],

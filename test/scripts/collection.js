@@ -2,7 +2,8 @@
 /**
  * dom collection.
  * tests for changing dom collections
- * with methods like .add, .filter, .first, .get, etc
+ * with methods like .add(), .filter(),
+ * .first(), .get(), etc
  */
 
 describe( 'dom collections', function() {
