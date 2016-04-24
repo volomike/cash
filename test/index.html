@@ -58,22 +58,30 @@
     <p class="class-fixture">Class Fixture</p>
 
     <input type="number">
+    <poppy></poppy>
 
   </section>
 
+  <article id="multiple-id">
+    <!-- test multiple id selection -->
+  </article>
   <section id="traversal-fixture">
 
     <div class="first"></div>
     <div></div>
     <div>
-      <div>
-        <div>
+      <div id="multiple-id">
+        <!-- test multiple id selection -->
+
+        <div data-filter="true">
           <div class="deep"></div>
           <div class="deep"></div>
         </div>
+
         <div>
           <div class="deep"></div>
         </div>
+
       </div>
     </div>
     <div></div>
@@ -100,6 +108,10 @@
     <i id="hasclass2" class="a b x    "></i>
     <i id="hasclass3" class="a b   y z"></i>
 
+  </section>
+
+  <section id="last-fixture">
+    <!-- this needs to be last element in #fixtures -->
   </section>
 
 </div>
