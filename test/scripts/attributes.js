@@ -210,4 +210,130 @@ describe( 'attributes', function() {
     });
 
 
+    describe( '.removeClass()', function() {
+
+        describe( 'when no argument, an integer, or falsey value', function() {
+
+            it( 'should return a cash collection, and not change classList' , function() {
+
+                var $fixture = $('#removeClass1');
+                var initial = $fixture[0].classList.toString();
+
+                var $empty = $fixture.removeClass('');
+                ( $empty ).should.be.an.instanceOf(Object);
+                ( $empty ).should.be.an.instanceOf($);
+
+                var $undefined = $fixture.removeClass( undefined );
+                ( $undefined ).should.be.an.instanceOf(Object);
+                ( $undefined ).should.be.an.instanceOf($);
+
+                var $null = $fixture.removeClass( null );
+                ( $null ).should.be.an.instanceOf(Object);
+                ( $null ).should.be.an.instanceOf($);
+
+                var $integer = $fixture.removeClass( 3 );
+                ( $integer ).should.be.an.instanceOf(Object);
+                ( $integer ).should.be.an.instanceOf($);
+
+                var final = $fixture[0].classList.toString();
+
+                ( final ).should.be.equal( initial );
+
+            });
+
+        });
+
+        describe( 'when run on single element', function() {
+
+            it( messages.collection , function() {
+
+                var $fixture = $('#removeClass1');
+                var $add = $fixture.removeClass('cashtest');
+                ( $add ).should.be.an.instanceOf(Object);
+                ( $add ).should.be.an.instanceOf($);
+
+            });
+
+            describe( 'when removing a single class', function() {
+
+                it( 'should not have the "cc" class' , function() {
+
+                    var $fixture = $('#removeClass1').removeClass('cc');
+
+                    var has = $fixture.hasClass('cc');
+                    has.should.be.false();
+
+                    has = $fixture.hasClass('c');
+                    has.should.be.true();
+
+                });
+
+            });
+
+            describe( 'when removing multiple classes', function() {
+
+                it( 'should not have the "a" or "b" classes' , function() {
+
+                    var $fixture = $('#removeClass1').removeClass('a b');
+
+                    var has = ( $fixture.hasClass('a') && $fixture.hasClass('b') );
+                    has.should.be.false();
+
+                    has = $fixture.hasClass('ab');
+                    has.should.be.true();
+
+                });
+
+            });
+
+        });
+
+        describe( 'when run on collection of elements', function() {
+
+            it( messages.collection , function() {
+
+                var $fixture = $('#removeClass1, #removeClass2');
+                var $remove = $fixture.removeClass('cashtest');
+                ( $remove ).should.be.an.instanceOf(Object);
+                ( $remove ).should.be.an.instanceOf($);
+
+            });
+
+            describe( 'when removing a single class', function() {
+
+                it( 'whole collection should not have the "c" class' , function() {
+
+                    $('#removeClass1, #removeClass2').removeClass('c');
+                    var $remove1 = $('#removeClass1');
+                    var $remove2 = $('#removeClass2');
+                    var has = ( $remove1.hasClass('c') &&
+                        $remove2.hasClass('c') );
+                    has.should.be.false();
+
+                });
+
+            });
+
+            describe( 'when removing multiple classes', function() {
+
+                it( 'whole collection should not have "d" or "ab" classes' , function() {
+
+                    $('#removeClass1, #removeClass2').removeClass('d ab');
+                    var $remove1 = $('#removeClass1');
+                    var $remove2 = $('#removeClass2');
+                    var has = (
+                        ( $remove1.hasClass('d') || $remove1.hasClass('ab') ) &&
+                        ( $remove2.hasClass('d') || $remove2.hasClass('ab') )
+                    );
+                    has.should.be.false();
+
+                });
+
+            });
+
+        });
+
+    });
+
+
 });
