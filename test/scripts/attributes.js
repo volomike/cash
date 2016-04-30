@@ -249,5 +249,81 @@ describe( 'attributes', function() {
 
     });
 
+    describe( '.toggleClass()', function() {
+
+        describe( 'when an integer, or falsey value', function() {
+
+            it( 'should not change classList' , function() {
+
+                var $fixture = $('#addClass1');
+                var initial = $fixture[0].className;
+
+                var $empty = $fixture.toggleClass('');
+                var $integer = $fixture.toggleClass( 3 );
+                var $null = $fixture.toggleClass( null );
+                var $undefined = $fixture.toggleClass( undefined );
+
+                ( $empty ).should.be.an.instanceOf(Object);
+                ( $empty ).should.be.an.instanceOf($);
+                ( $undefined ).should.be.an.instanceOf(Object);
+                ( $undefined ).should.be.an.instanceOf($);
+                ( $null ).should.be.an.instanceOf(Object);
+                ( $null ).should.be.an.instanceOf($);
+                ( $integer ).should.be.an.instanceOf(Object);
+                ( $integer ).should.be.an.instanceOf($);
+
+                var final = $fixture[0].className;
+
+                ( final ).should.be.equal( initial );
+
+            });
+
+        });
+
+        describe( 'when toggling a single class', function() {
+
+            it( 'should add the class if it was missing' , function() {
+
+                var $fixture1 = $('#addClass1');
+                var $fixture2 = $('#addClass2');
+                var $fixture3 = $('#addClass1, #addClass2');
+
+                var $toggle1 = $fixture1.toggleClass('tinky');
+                var $toggle2 = $fixture3.toggleClass('winky');
+
+                ( $fixture1.hasClass('tinky') ).should.be.true();
+                ( $fixture1.hasClass('winky') ).should.be.true();
+                ( $fixture2.hasClass('winky') ).should.be.true();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should remove the class if it existed', function() {
+
+                var $fixture1 = $('#removeClass1');
+                var $fixture2 = $('#removeClass2');
+                var $fixture3 = $('#removeClass1, #removeClass2');
+
+                var $toggle1 = $fixture1.toggleClass('d');
+                var $toggle2 = $fixture3.toggleClass('dd');
+
+                ( $fixture1.hasClass('d') ).should.be.false();
+                ( $fixture1.hasClass('dd') ).should.be.false();
+                ( $fixture2.hasClass('dd') ).should.be.false();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+        });
+
+    });
 
 });
