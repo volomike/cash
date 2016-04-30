@@ -1,5 +1,19 @@
+/**
+  * cash-dom - An absurdly small jQuery alternative for modern browsers.
+  *
+  * @version v1.2.0
+  * @homepage https://github.com/kenwheeler/cash
+  * @license MIT
+  */
 
-// @echo header
+/**
+  * cash-dom - An absurdly small jQuery alternative for modern browsers.
+  *
+  * @version v1.2.0
+  * @homepage https://github.com/kenwheeler/cash
+  * @license MIT
+  */
+
 
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -17,19 +31,6 @@
       slice = ArrayProto.slice,
       filter = ArrayProto.filter,
       push = ArrayProto.push;
-
-  // @include ./core.js
-  // @include ./util.js
-  // @include ./data.js
-  // @include ./attributes.js
-  // @include ./collection.js
-  // @include ./css.js
-  // @include ./dimensions.js
-  // @include ./events.js
-  // @include ./forms.js
-  // @include ./manipulation.js
-  // @include ./offset.js
-  // @include ./traversal.js
   var noop = function () {},
       isFunction = function (item) {
     return typeof item === typeof noop;
