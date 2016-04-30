@@ -212,26 +212,24 @@ describe( 'attributes', function() {
 
     describe( '.removeClass()', function() {
 
-        describe( 'when no argument, an integer, or falsey value', function() {
+        describe( 'when an integer, or falsey value', function() {
 
-            it( 'should return a cash collection, and not change classList' , function() {
+            it( 'should not change classList' , function() {
 
                 var $fixture = $('#removeClass1');
                 var initial = $fixture[0].classList.toString();
 
                 var $empty = $fixture.removeClass('');
+                var $integer = $fixture.removeClass( 3 );
+                var $null = $fixture.removeClass( null );
+                var $undefined = $fixture.removeClass( undefined );
+
                 ( $empty ).should.be.an.instanceOf(Object);
                 ( $empty ).should.be.an.instanceOf($);
-
-                var $undefined = $fixture.removeClass( undefined );
                 ( $undefined ).should.be.an.instanceOf(Object);
                 ( $undefined ).should.be.an.instanceOf($);
-
-                var $null = $fixture.removeClass( null );
                 ( $null ).should.be.an.instanceOf(Object);
                 ( $null ).should.be.an.instanceOf($);
-
-                var $integer = $fixture.removeClass( 3 );
                 ( $integer ).should.be.an.instanceOf(Object);
                 ( $integer ).should.be.an.instanceOf($);
 
@@ -243,95 +241,76 @@ describe( 'attributes', function() {
 
         });
 
-        describe( 'when run on single element', function() {
+        describe( 'when no arguments', function() {
 
-            it( messages.collection , function() {
+            it( 'should remove all classes on a single element' , function() {
+
+                var $fixture = $('#removeClass1')
+                                    .clone()
+                                    .attr('id','')
+                                    .appendTo( $('attribute-fixture') );
+
+                $fixture.removeClass();
+                should.not.exist( $fixture.className );
+
+                ( $fixture ).should.be.an.instanceOf(Object);
+                ( $fixture ).should.be.an.instanceOf($);
+
+            });
+
+        });
+
+
+        describe( 'when removing single class', function() {
+
+            it( 'should not have the "a" or "aa" class' , function() {
 
                 var $fixture = $('#removeClass1');
-                var $add = $fixture.removeClass('cashtest');
-                ( $add ).should.be.an.instanceOf(Object);
-                ( $add ).should.be.an.instanceOf($);
+                var $fixture2 = $('#removeClass1, #removeClass2');
 
-            });
+                var $remove1 = $fixture.removeClass('a');
+                var $remove2 = $fixture2.removeClass('aa');
 
-            describe( 'when removing a single class', function() {
+                ( $remove1.hasClass('a') ).should.be.false();
+                ( $remove1.hasClass('aa') ).should.be.false();
+                ( $remove2.hasClass('aa') ).should.be.false();
 
-                it( 'should not have the "cc" class' , function() {
-
-                    var $fixture = $('#removeClass1').removeClass('cc');
-
-                    var has = $fixture.hasClass('cc');
-                    has.should.be.false();
-
-                    has = $fixture.hasClass('c');
-                    has.should.be.true();
-
-                });
-
-            });
-
-            describe( 'when removing multiple classes', function() {
-
-                it( 'should not have the "a" or "b" classes' , function() {
-
-                    var $fixture = $('#removeClass1').removeClass('a b');
-
-                    var has = ( $fixture.hasClass('a') && $fixture.hasClass('b') );
-                    has.should.be.false();
-
-                    has = $fixture.hasClass('ab');
-                    has.should.be.true();
-
-                });
+                ( $remove1 ).should.be.an.instanceOf(Object);
+                ( $remove1 ).should.be.an.instanceOf($);
+                ( $remove2 ).should.be.an.instanceOf(Object);
+                ( $remove2 ).should.be.an.instanceOf($);
 
             });
 
         });
 
-        describe( 'when run on collection of elements', function() {
 
-            it( messages.collection , function() {
+        describe( 'when removing multiple classes', function() {
 
-                var $fixture = $('#removeClass1, #removeClass2');
-                var $remove = $fixture.removeClass('cashtest');
-                ( $remove ).should.be.an.instanceOf(Object);
-                ( $remove ).should.be.an.instanceOf($);
+            it( 'should not have the "b", "bb", "c" or "cc" classes', function() {
 
-            });
+                var $fixture1 = $('#removeClass1');
+                var $fixture2 = $('#removeClass1, #removeClass2');
+                var $remove1 = $fixture1.clone().appendTo('#attribute-fixture');
+                var $remove2 = $fixture2.clone().appendTo('#attribute-fixture');
 
-            describe( 'when removing a single class', function() {
+                $remove1.removeClass('b bb');
+                $remove2.removeClass('c cc');
 
-                it( 'whole collection should not have the "c" class' , function() {
+                ( $remove1.hasClass('b') ).should.be.false();
+                ( $remove1.hasClass('bb') ).should.be.false();
+                ( $remove2.hasClass('c') ).should.be.false();
+                ( $remove2.hasClass('cc') ).should.be.false();
 
-                    $('#removeClass1, #removeClass2').removeClass('c');
-                    var $remove1 = $('#removeClass1');
-                    var $remove2 = $('#removeClass2');
-                    var has = ( $remove1.hasClass('c') &&
-                        $remove2.hasClass('c') );
-                    has.should.be.false();
-
-                });
-
-            });
-
-            describe( 'when removing multiple classes', function() {
-
-                it( 'whole collection should not have "d" or "ab" classes' , function() {
-
-                    $('#removeClass1, #removeClass2').removeClass('d ab');
-                    var $remove1 = $('#removeClass1');
-                    var $remove2 = $('#removeClass2');
-                    var has = (
-                        ( $remove1.hasClass('d') || $remove1.hasClass('ab') ) &&
-                        ( $remove2.hasClass('d') || $remove2.hasClass('ab') )
-                    );
-                    has.should.be.false();
-
-                });
+                ( $remove1 ).should.be.an.instanceOf(Object);
+                ( $remove1 ).should.be.an.instanceOf($);
+                ( $remove2 ).should.be.an.instanceOf(Object);
+                ( $remove2 ).should.be.an.instanceOf($);
 
             });
 
         });
+
 
     });
 
