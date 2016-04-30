@@ -91,6 +91,69 @@ describe( 'attributes', function() {
 
     });
 
+    describe( '.attr()', function() {
+
+        var $fixture = $('#attribute-fixture');
+        var $attr1 = $fixture.attr();
+        var $attr2 = $fixture.attr( null );
+        var $attr3 = $fixture.attr( undefined );
+        var $attr4 = $fixture.attr( 5 );
+        var $attr5 = $fixture.attr( "" );
+        var $attr6 = $fixture.attr( true );
+        var $attr7 = $fixture.attr( false );
+
+        var $hasattr = $fixture.attr( 'data-💰' );
+        var $hasnotattr = $fixture.attr( 'extraordinary' );
+
+        describe( 'when no argument passed', function() {
+            it( messages.collection , function() {
+                ( $attr1 ).should.be.an.instanceOf(Object);
+                ( $attr1 ).should.be.an.instanceOf($);
+            });
+        });
+
+        describe( 'when null', function() {
+            it( messages.collection , function() {
+                ( $attr2 === undefined ).should.be.true();
+            });
+        });
+
+        describe( 'when undefined', function() {
+            it( messages.collection , function() {
+                ( $attr3 === undefined ).should.be.true();
+            });
+        });
+
+        describe( 'when integer', function() {
+            it( messages.collection , function() {
+                ( $attr4 === undefined ).should.be.true();
+            });
+        });
+
+        describe( 'when boolean', function() {
+            it( messages.collection , function() {
+                ( $attr6 === undefined ).should.be.true();
+                ( $attr7 === undefined ).should.be.true();
+            });
+        });
+
+        describe( 'when empty string', function() {
+            it( messages.collection , function() {
+                ( $attr5 === undefined ).should.be.true();
+            });
+        });
+
+        describe( 'when provided a single string argument', function() {
+            it( 'should return value when attribute exists' , function() {
+                $hasattr.should.be.equal( 'cash' );
+            });
+            it( 'should return "undefined" when attribute doesnt exist' , function() {
+                ( $hasnotattr === undefined ).should.be.true();
+            });
+        });
+
+    });
+
     describe( '.hasClass()', function() {
 
         describe( 'when checking for a single class', function() {
