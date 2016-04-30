@@ -48,6 +48,11 @@
 
 <div id="fixtures" style="padding: 50px; font-family: sans-serif;">
 
+  <article id="multiple-id">
+    <!-- test multiple id selection
+          must come first -->
+  </article>
+
   <section id="selector-fixture">
 
     <h1 data-attribute="data" attribute="functioning">Element Fixture</h1>
@@ -120,11 +125,6 @@
 
 
 
-
-  <article id="multiple-id">
-    <!-- test multiple id selection -->
-  </article>
-
   <section id="last-fixture">
     <!-- this needs to be last element in #fixtures -->
   </section>
@@ -139,7 +139,8 @@
 
 <!-- Mocha In Browser Setup -->
 
-<script src="../dist/cash.js"></script>
+<script src="../dist/cash.jds"></script>
+<script src="../dist/cash-concat.min.js"></script>
 
 <script src="../node_modules/mocha/mocha.js"></script>
 <script src="../node_modules/should/should.js"></script>
