@@ -1,48 +1,65 @@
-"use strict";
+/**
+  * cash-dom - An absurdly small jQuery alternative for modern browsers.
+  *
+  * @version v1.2.0
+  * @homepage https://github.com/kenwheeler/cash
+  * @license MIT
+  */
 
-/*! cash-dom 1.2.0, https://github.com/kenwheeler/cash @license MIT */
+
 (function (root, factory) {
-  if (typeof define === "function" && define.amd) {
+  if (typeof define === 'function' && define.amd) {
     define(factory);
-  } else if (typeof exports !== "undefined") {
+  } else if (typeof exports !== 'undefined') {
     module.exports = factory();
   } else {
     root.cash = root.$ = factory();
   }
 })(this, function () {
-  var doc = document, win = window, ArrayProto = Array.prototype, slice = ArrayProto.slice, filter = ArrayProto.filter, push = ArrayProto.push;
 
-  var noop = function () {}, isFunction = function (item) {
+  var doc = document,
+      win = window,
+      ArrayProto = Array.prototype,
+      slice = ArrayProto.slice,
+      filter = ArrayProto.filter,
+      push = ArrayProto.push;
+  var noop = function () {},
+      isFunction = function (item) {
     return typeof item === typeof noop;
-  }, isString = function (item) {
-    return typeof item === typeof "";
+  },
+      isString = function (item) {
+    return typeof item === typeof '';
   };
 
-  var idMatch = /^#[\w-]*$/, classMatch = /^\.[\w-]*$/, htmlMatch = /<.+>/, singlet = /^\w+$/;
+  var idMatch = /^#[\w-]*$/,
+      classMatch = /^\.[\w-]*$/,
+      htmlMatch = /<.+>/,
+      singlet = /^\w+$/;
 
   function find(selector, context) {
     context = context || doc;
-    var elems = (classMatch.test(selector) ? context.getElementsByClassName(selector.slice(1)) : singlet.test(selector) ? context.getElementsByTagName(selector) : context.querySelectorAll(selector));
+    var elems = classMatch.test(selector) ? context.getElementsByClassName(selector.slice(1)) : singlet.test(selector) ? context.getElementsByTagName(selector) : context.querySelectorAll(selector);
     return elems;
   }
 
   var frag, tmp;
   function parseHTML(str) {
     frag = frag || doc.createDocumentFragment();
-    tmp = tmp || frag.appendChild(doc.createElement("div"));
+    tmp = tmp || frag.appendChild(doc.createElement('div'));
     tmp.innerHTML = str;
     return tmp.childNodes;
   }
 
   function onReady(fn) {
-    if (doc.readyState !== "loading") {
+    if (doc.readyState !== 'loading') {
       fn();
     } else {
-      doc.addEventListener("DOMContentLoaded", fn);
+      doc.addEventListener('DOMContentLoaded', fn);
     }
   }
 
   function Init(selector, context) {
+
     if (!selector) {
       return this;
     }
@@ -52,21 +69,23 @@
       return selector;
     }
 
-    var elems = selector, i = 0, length;
+    var elems = selector,
+        i = 0,
+        length;
 
     if (isString(selector)) {
-      elems = (idMatch.test(selector) ?
+      elems = idMatch.test(selector) ?
       // If an ID use the faster getElementById check
       doc.getElementById(selector.slice(1)) : htmlMatch.test(selector) ?
       // If HTML, parse it into real elements
       parseHTML(selector) :
       // else use `find`
-      find(selector, context));
+      find(selector, context);
 
       // If function, use as shortcut for DOM ready
     } else if (isFunction(selector)) {
-      onReady(selector);return this;
-    }
+        onReady(selector);return this;
+      }
 
     if (!elems) {
       return this;
@@ -105,11 +124,12 @@
   cash.noop = noop;
   cash.isFunction = isFunction;
   cash.isString = isString;
-
   cash.extend = fn.extend = function (target) {
     target = target || {};
 
-    var args = slice.call(arguments), length = args.length, i = 1;
+    var args = slice.call(arguments),
+        length = args.length,
+        i = 1;
 
     if (args.length === 1) {
       target = this;
@@ -131,7 +151,8 @@
   };
 
   function each(collection, callback) {
-    var l = collection.length, i = 0;
+    var l = collection.length,
+        i = 0;
 
     for (; i < l; i++) {
       if (callback.call(collection[i], collection[i], i, collection) === false) {
@@ -152,7 +173,9 @@
 
   cash.extend({
     merge: function (first, second) {
-      var len = +second.length, i = first.length, j = 0;
+      var len = +second.length,
+          i = first.length,
+          j = 0;
 
       for (; j < len; i++, j++) {
         first[i] = second[j];
@@ -162,6 +185,7 @@
       return first;
     },
 
+
     each: each,
     matches: matches,
     unique: unique,
@@ -169,23 +193,21 @@
     isNumeric: function (n) {
       return !isNaN(parseFloat(n)) && isFinite(n);
     }
-
   });
-
-  var uid = cash.uid = "_cash" + Date.now();
+  var uid = cash.uid = '_cash' + Date.now();
 
   function getDataCache(node) {
-    return (node[uid] = node[uid] || {});
+    return node[uid] = node[uid] || {};
   }
 
   function setData(node, key, value) {
-    return (getDataCache(node)[key] = value);
+    return getDataCache(node)[key] = value;
   }
 
   function getData(node, key) {
     var c = getDataCache(node);
     if (c[key] === undefined) {
-      c[key] = node.dataset ? node.dataset[key] : cash(node).attr("data-" + key);
+      c[key] = node.dataset ? node.dataset[key] : cash(node).attr('data-' + key);
     }
     return c[key];
   }
@@ -197,7 +219,7 @@
     } else if (node.dataset) {
       delete node.dataset[key];
     } else {
-      cash(node).removeAttr("data-" + name);
+      cash(node).removeAttr('data-' + name);
     }
   }
 
@@ -211,27 +233,24 @@
         return setData(v, key, value);
       });
     },
-
     removeData: function (key) {
       // TODO: tear out into module for IE9
       return this.each(function (v) {
         return removeData(v, key);
       });
     }
-
   });
-
   var notWhiteMatch = /\S+/g;
 
   function hasClass(v, c) {
-    return (v.classList ? v.classList.contains(c) : new RegExp("(^| )" + c + "( |$)", "gi").test(v.className));
+    return v.classList ? v.classList.contains(c) : new RegExp('(^| )' + c + '( |$)', 'gi').test(v.className);
   }
 
   function addClass(v, c, spacedName) {
     if (v.classList) {
       v.classList.add(c);
-    } else if (spacedName.indexOf(" " + c + " ")) {
-      v.className += " " + c;
+    } else if (spacedName.indexOf(' ' + c + ' ')) {
+      v.className += ' ' + c;
     }
   }
 
@@ -239,7 +258,7 @@
     if (v.classList) {
       v.classList.remove(c);
     } else {
-      v.className = v.className.replace(c, "");
+      v.className = v.className.replace(c, '');
     }
   }
 
@@ -248,22 +267,21 @@
       var classes = c.match(notWhiteMatch);
 
       return this.each(function (v) {
-        var spacedName = " " + v.className + " ";
+        var spacedName = ' ' + v.className + ' ';
         each(classes, function (c) {
           addClass(v, c, spacedName);
         });
       });
     },
-
     attr: function (name, value) {
       if (isString(name)) {
-        return (value === undefined ? this[0].getAttribute ? this[0].getAttribute(name) : this[0][name] : this.each(function (v) {
+        return value === undefined ? this[0].getAttribute ? this[0].getAttribute(name) : this[0][name] : this.each(function (v) {
           if (v.setAttribute) {
             v.setAttribute(name, value);
           } else {
             v[name] = value;
           }
-        }));
+        });
       }
 
       for (var key in name) {
@@ -272,7 +290,6 @@
 
       return this;
     },
-
     hasClass: function (c) {
       var check = false;
       this.each(function (v) {
@@ -281,12 +298,12 @@
       });
       return check;
     },
-
     prop: function (name, value) {
+
       if (isString(name)) {
-        return (value === undefined ? this[0][name] : this.each(function (v) {
+        return value === undefined ? this[0][name] : this.each(function (v) {
           v[name] = value;
-        }));
+        });
       }
 
       for (var key in name) {
@@ -295,7 +312,6 @@
 
       return this;
     },
-
     removeAttr: function (name) {
       return this.each(function (v) {
         if (v.removeAttribute) {
@@ -305,7 +321,6 @@
         }
       });
     },
-
     removeClass: function (c) {
       var classes = c.match(notWhiteMatch);
 
@@ -315,21 +330,19 @@
         });
       });
     },
-
     removeProp: function (name) {
       return this.each(function (v) {
         delete v[name];
       });
     },
-
     toggleClass: function (c, state) {
       if (state !== undefined) {
-        return this[state ? "addClass" : "removeClass"](c);
+        return this[state ? 'addClass' : 'removeClass'](c);
       }
       var classes = c.match(notWhiteMatch);
 
       return this.each(function (v) {
-        var spacedName = " " + v.className + " ";
+        var spacedName = ' ' + v.className + ' ';
         each(classes, function (c) {
           if (hasClass(v, c)) {
             removeClass(v, c);
@@ -338,57 +351,52 @@
           }
         });
       });
-    } });
-
+    }
+  });
   fn.extend({
     add: function (selector, context) {
       return unique(cash.merge(this, cash(selector, context)));
     },
-
     each: function (callback) {
       each(this, callback);
       return this;
     },
-
     eq: function (index) {
       return cash(this.get(index));
     },
-
     filter: function (selector) {
-      return filter.call(this, (isString(selector) ? function (e) {
+      return filter.call(this, isString(selector) ? function (e) {
         return matches(e, selector);
-      } : selector));
+      } : selector);
     },
-
     first: function () {
       return this.eq(0);
     },
-
     get: function (index) {
       if (index === undefined) {
         return slice.call(this);
       }
-      return (index < 0 ? this[index + this.length] : this[index]);
+      return index < 0 ? this[index + this.length] : this[index];
     },
-
     index: function (elem) {
       var f = this[0];
       return slice.call(elem ? cash(elem) : cash(f).parent().children()).indexOf(f);
     },
-
     last: function () {
       return this.eq(-1);
     }
-
   });
-
-  var getPrefixedProp = (function () {
-    var cache = {}, div = doc.createElement("div"), style = div.style, camelRegex = /(?:^\w|[A-Z]|\b\w)/g, whiteSpace = /\s+/g;
+  var getPrefixedProp = function () {
+    var cache = {},
+        div = doc.createElement('div'),
+        style = div.style,
+        camelRegex = /(?:^\w|[A-Z]|\b\w)/g,
+        whiteSpace = /\s+/g;
 
     function camelCase(str) {
       return str.replace(camelRegex, function (letter, index) {
-        return letter[index === 0 ? "toLowerCase" : "toUpperCase"]();
-      }).replace(whiteSpace, "");
+        return letter[index === 0 ? 'toLowerCase' : 'toUpperCase']();
+      }).replace(whiteSpace, '');
     }
 
     return function (prop) {
@@ -397,7 +405,9 @@
         return cache[prop];
       }
 
-      var ucProp = prop.charAt(0).toUpperCase() + prop.slice(1), prefixes = ["webkit", "moz", "ms", "o"], props = (prop + " " + (prefixes).join(ucProp + " ") + ucProp).split(" ");
+      var ucProp = prop.charAt(0).toUpperCase() + prop.slice(1),
+          prefixes = ['webkit', 'moz', 'ms', 'o'],
+          props = (prop + ' ' + prefixes.join(ucProp + ' ') + ucProp).split(' ');
 
       each(props, function (p) {
         if (p in style) {
@@ -408,15 +418,15 @@
 
       return cache[prop];
     };
-  }());
+  }();
 
   fn.extend({
     css: function (prop, value) {
       if (isString(prop)) {
         prop = getPrefixedProp(prop);
-        return (value ? this.each(function (v) {
+        return value ? this.each(function (v) {
           return v.style[prop] = value;
-        }) : win.getComputedStyle(this[0])[prop]);
+        }) : win.getComputedStyle(this[0])[prop];
       }
 
       for (var key in prop) {
@@ -425,38 +435,36 @@
 
       return this;
     }
-
   });
-
   function compute(el, prop) {
     return parseInt(win.getComputedStyle(el[0], null)[prop], 10) || 0;
   }
 
-  each(["Width", "Height"], function (v) {
+  each(['Width', 'Height'], function (v) {
+
     var lower = v.toLowerCase();
 
     fn[lower] = function () {
       return this[0].getBoundingClientRect()[lower];
     };
 
-    fn["inner" + v] = function () {
-      return this[0]["client" + v];
+    fn['inner' + v] = function () {
+      return this[0]['client' + v];
     };
 
-    fn["outer" + v] = function (margins) {
-      return this[0]["offset" + v] + (margins ? compute(this, "margin" + (v === "Width" ? "Left" : "Top")) + compute(this, "margin" + (v === "Width" ? "Right" : "Bottom")) : 0);
+    fn['outer' + v] = function (margins) {
+      return this[0]['offset' + v] + (margins ? compute(this, 'margin' + (v === 'Width' ? 'Left' : 'Top')) + compute(this, 'margin' + (v === 'Width' ? 'Right' : 'Bottom')) : 0);
     };
   });
-
   function registerEvent(node, eventName, callback) {
-    var eventCache = getData(node, "_cashEvents") || setData(node, "_cashEvents", {});
+    var eventCache = getData(node, '_cashEvents') || setData(node, '_cashEvents', {});
     eventCache[eventName] = eventCache[eventName] || [];
     eventCache[eventName].push(callback);
     node.addEventListener(eventName, callback);
   }
 
   function removeEvent(node, eventName, callback) {
-    var eventCache = getData(node, "_cashEvents")[eventName];
+    var eventCache = getData(node, '_cashEvents')[eventName];
     if (callback) {
       node.removeEventListener(eventName, callback);
     } else {
@@ -473,8 +481,8 @@
         return removeEvent(v, eventName, callback);
       });
     },
-
     on: function (eventName, delegate, callback, runOnce) {
+
       var originalCallback;
 
       if (!isString(eventName)) {
@@ -489,7 +497,7 @@
         delegate = null;
       }
 
-      if (eventName === "ready") {
+      if (eventName === 'ready') {
         onReady(callback);return this;
       }
 
@@ -503,7 +511,7 @@
           } else {
             while (!matches(t, delegate)) {
               if (t === this) {
-                return (t = false);
+                return t = false;
               }
               t = t.parentNode;
             }
@@ -526,45 +534,44 @@
         registerEvent(v, eventName, finalCallback);
       });
     },
-
     one: function (eventName, delegate, callback) {
       return this.on(eventName, delegate, callback, true);
     },
 
+
     ready: onReady,
 
     trigger: function (eventName) {
-      var evt = doc.createEvent("HTMLEvents");
+      var evt = doc.createEvent('HTMLEvents');
       evt.initEvent(eventName, true, false);
       return this.each(function (v) {
         return v.dispatchEvent(evt);
       });
     }
-
   });
-
   function encode(name, value) {
-    return "&" + encodeURIComponent(name) + "=" + encodeURIComponent(value).replace(/%20/g, "+");
+    return '&' + encodeURIComponent(name) + '=' + encodeURIComponent(value).replace(/%20/g, '+');
   }
   function isCheckable(field) {
-    return field.type === "radio" || field.type === "checkbox";
+    return field.type === 'radio' || field.type === 'checkbox';
   }
 
-  var formExcludes = ["file", "reset", "submit", "button"];
+  var formExcludes = ['file', 'reset', 'submit', 'button'];
 
   fn.extend({
     serialize: function () {
-      var formEl = this[0].elements, query = "";
+      var formEl = this[0].elements,
+          query = '';
 
       each(formEl, function (field) {
         if (field.name && formExcludes.indexOf(field.type) < 0) {
-          if (field.type === "select-multiple") {
+          if (field.type === 'select-multiple') {
             each(field.options, function (o) {
               if (o.selected) {
                 query += encode(field.name, o.value);
               }
             });
-          } else if (!isCheckable(field) || (isCheckable(field) && field.checked)) {
+          } else if (!isCheckable(field) || isCheckable(field) && field.checked) {
             query += encode(field.name, field.value);
           }
         }
@@ -572,7 +579,6 @@
 
       return query.substr(1);
     },
-
     val: function (value) {
       if (value === undefined) {
         return this[0].value;
@@ -582,9 +588,7 @@
         });
       }
     }
-
   });
-
   function insertElement(el, child, prepend) {
     if (prepend) {
       var first = el.childNodes[0];
@@ -605,9 +609,9 @@
     }
 
     each(parent, str ? function (v) {
-      return v.insertAdjacentHTML(prepend ? "afterbegin" : "beforeend", child);
+      return v.insertAdjacentHTML(prepend ? 'afterbegin' : 'beforeend', child);
     } : function (v, i) {
-      return insertElement(v, (i === 0 ? child : child.cloneNode(true)), prepend);
+      return insertElement(v, i === 0 ? child : child.cloneNode(true), prepend);
     });
   }
 
@@ -616,84 +620,73 @@
       cash(selector).insertAfter(this);
       return this;
     },
-
     append: function (content) {
       insertContent(this, content);
       return this;
     },
-
     appendTo: function (parent) {
       insertContent(cash(parent), this);
       return this;
     },
-
     before: function (selector) {
       cash(selector).insertBefore(this);
       return this;
     },
-
     clone: function () {
       return cash(this.map(function (v) {
         return v.cloneNode(true);
       }));
     },
-
     empty: function () {
-      this.html("");
+      this.html('');
       return this;
     },
-
     html: function (content) {
       if (content === undefined) {
         return this[0].innerHTML;
       }
-      var source = (content.nodeType ? content[0].outerHTML : content);
+      var source = content.nodeType ? content[0].outerHTML : content;
       return this.each(function (v) {
         return v.innerHTML = source;
       });
     },
-
     insertAfter: function (selector) {
       var _this = this;
 
-
       cash(selector).each(function (el, i) {
-        var parent = el.parentNode, sibling = el.nextSibling;
+        var parent = el.parentNode,
+            sibling = el.nextSibling;
         _this.each(function (v) {
-          parent.insertBefore((i === 0 ? v : v.cloneNode(true)), sibling);
+          parent.insertBefore(i === 0 ? v : v.cloneNode(true), sibling);
         });
       });
 
       return this;
     },
-
     insertBefore: function (selector) {
       var _this2 = this;
+
       cash(selector).each(function (el, i) {
         var parent = el.parentNode;
         _this2.each(function (v) {
-          parent.insertBefore((i === 0 ? v : v.cloneNode(true)), el);
+          parent.insertBefore(i === 0 ? v : v.cloneNode(true), el);
         });
       });
       return this;
     },
-
     prepend: function (content) {
       insertContent(this, content, true);
       return this;
     },
-
     prependTo: function (parent) {
       insertContent(cash(parent), this, true);
       return this;
     },
-
     remove: function () {
       return this.each(function (v) {
         return v.parentNode.removeChild(v);
       });
     },
-
     text: function (content) {
       if (!content) {
         return this[0].textContent;
@@ -702,9 +695,7 @@
         return v.textContent = content;
       });
     }
-
   });
-
   var docEl = doc.documentElement;
 
   fn.extend({
@@ -715,7 +706,6 @@
         top: el.offsetTop
       };
     },
-
     offset: function () {
       var rect = this[0].getBoundingClientRect();
       return {
@@ -723,13 +713,10 @@
         left: rect.left + win.pageXOffset - docEl.clientLeft
       };
     },
-
     offsetParent: function () {
       return cash(this[0].offsetParent);
     }
-
   });
-
   function directCompare(el, selector) {
     return el === selector;
   }
@@ -742,26 +729,25 @@
       });
       elems = unique(elems);
 
-      return (!selector ? elems : elems.filter(function (v) {
+      return !selector ? elems : elems.filter(function (v) {
         return matches(v, selector);
-      }));
+      });
     },
-
     closest: function (selector) {
       if (!selector || matches(this[0], selector)) {
         return this;
       }
       return this.parent().closest(selector);
     },
-
     is: function (selector) {
       if (!selector) {
         return false;
       }
 
-      var match = false, comparator = (isString(selector) ? matches : selector.cash ? function (el) {
+      var match = false,
+          comparator = isString(selector) ? matches : selector.cash ? function (el) {
         return selector.is(el);
-      } : directCompare);
+      } : directCompare;
 
       this.each(function (el, i) {
         match = comparator(el, selector, i);
@@ -770,7 +756,6 @@
 
       return match;
     },
-
     find: function (selector) {
       if (!selector) {
         return cash();
@@ -783,23 +768,19 @@
 
       return unique(elems);
     },
-
     has: function (selector) {
       return filter.call(this, function (el) {
         return cash(el).find(selector).length !== 0;
       });
     },
-
     next: function () {
       return cash(this[0].nextElementSibling);
     },
-
     not: function (selector) {
       return filter.call(this, function (el) {
         return !matches(el, selector);
       });
     },
-
     parent: function () {
       var result = this.map(function (item) {
         return item.parentElement || doc.body.parentNode;
@@ -807,9 +788,9 @@
 
       return unique(result);
     },
-
     parents: function (selector) {
-      var last, result = [];
+      var last,
+          result = [];
 
       this.each(function (item) {
         last = item;
@@ -817,7 +798,7 @@
         while (last !== doc.body.parentNode) {
           last = last.parentElement;
 
-          if (!selector || (selector && matches(last, selector))) {
+          if (!selector || selector && matches(last, selector)) {
             result.push(last);
           }
         }
@@ -825,21 +806,18 @@
 
       return unique(result);
     },
-
     prev: function () {
       return cash(this[0].previousElementSibling);
     },
-
     siblings: function () {
-      var collection = this.parent().children(), el = this[0];
+      var collection = this.parent().children(),
+          el = this[0];
 
       return filter.call(collection, function (i) {
         return i !== el;
       });
     }
-
   });
-
 
   return cash;
 });

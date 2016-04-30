@@ -6,7 +6,7 @@ module.exports = function(config) {
     preprocessors: {
 
       'test/index.html': ['html2js'],
-      'dist/cash-concat.js': ['coverage']
+      'dist/cash.js': ['coverage']
 
     },
 
@@ -48,7 +48,7 @@ module.exports = function(config) {
 
     files: [
 
-        'dist/cash-concat.js',
+        'dist/cash.js',
         'test/index.html',
 
         'test/scripts/setup.js',

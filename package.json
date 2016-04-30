@@ -15,11 +15,11 @@
   "homepage": "https://github.com/kenwheeler/cash",
   "scripts": {
     "build": "npm run concat && npm run babel && npm run banner && npm run uglify",
-    "banner": "headr dist/cash-concat.js -o=dist/cash-concat.js --version --homepage --license",
+    "banner": "headr dist/cash.js -o=dist/cash.js --version --homepage --license",
     "postbuild": "npm run test",
-    "babel": "babel dist/cash-concat.js --out-file dist/cash-concat.js",
-    "concat": "concat-cli -f src/_wrap-start.js src/core.js src/util.js src/data.js src/attributes.js src/collection.js src/css.js src/dimensions.js src/events.js src/forms.js src/manipulation.js src/offset.js src/traversal.js src/_wrap-end.js -o dist/cash-concat.js",
-    "uglify": "uglifyjs --compress --mangle -r cash --screw-ie8 dist/cash-concat.js -o dist/cash-concat.min.js",
+    "babel": "babel dist/cash.js --out-file dist/cash.js",
+    "concat": "concat-cli -f src/_wrap-start.js src/core.js src/util.js src/data.js src/attributes.js src/collection.js src/css.js src/dimensions.js src/events.js src/forms.js src/manipulation.js src/offset.js src/traversal.js src/_wrap-end.js -o dist/cash.js",
+    "uglify": "uglifyjs --compress --comments --mangle --screw-ie8 -r cash dist/cash.js -o dist/cash.min.js",
     "test": "karma start --single-run"
   },
   "devDependencies": {
