@@ -284,9 +284,9 @@ describe( 'attributes', function() {
 
             it( 'should add the class if it was missing' , function() {
 
-                var $fixture1 = $('#addClass1');
-                var $fixture2 = $('#addClass2');
-                var $fixture3 = $('#addClass1, #addClass2');
+                var $fixture1 = $('#toggleClass1');
+                var $fixture2 = $('#toggleClass2');
+                var $fixture3 = $('#toggleClass1, #toggleClass2');
 
                 var $toggle1 = $fixture1.toggleClass('tinky');
                 var $toggle2 = $fixture3.toggleClass('winky');
@@ -304,16 +304,170 @@ describe( 'attributes', function() {
 
             it( 'should remove the class if it existed', function() {
 
-                var $fixture1 = $('#removeClass1');
-                var $fixture2 = $('#removeClass2');
-                var $fixture3 = $('#removeClass1, #removeClass2');
+                var $fixture1 = $('#toggleClass1');
+                var $fixture2 = $('#toggleClass2');
+                var $fixture3 = $('#toggleClass1, #toggleClass2');
 
-                var $toggle1 = $fixture1.toggleClass('d');
-                var $toggle2 = $fixture3.toggleClass('dd');
+                var $toggle1 = $fixture1.toggleClass('a');
+                var $toggle2 = $fixture3.toggleClass('aa');
 
-                ( $fixture1.hasClass('d') ).should.be.false();
-                ( $fixture1.hasClass('dd') ).should.be.false();
-                ( $fixture2.hasClass('dd') ).should.be.false();
+                ( $fixture1.hasClass('a') ).should.be.false();
+                ( $fixture1.hasClass('aa') ).should.be.false();
+                ( $fixture2.hasClass('aa') ).should.be.false();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should add class, and remove class' , function() {
+
+                var $fixture1 = $('#toggleClass1');
+                var $fixture2 = $('#toggleClass2');
+                var $fixture3 = $('#toggleClass1, #toggleClass2');
+
+                var $toggle = $fixture3.toggleClass('xx');
+
+                ( $fixture1.hasClass('xx') ).should.be.false();
+                ( $fixture2.hasClass('xx') ).should.be.true();
+
+                ( $toggle ).should.be.an.instanceOf(Object);
+                ( $toggle ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should force add classes', function() {
+
+                var $fixture1 = $('#toggleClass1');
+                var $fixture2 = $('#toggleClass2');
+                var $fixture3 = $('#toggleClass1, #toggleClass2');
+
+                var $toggle1 = $fixture1.toggleClass('force', true);
+                var $toggle2 = $fixture3.toggleClass('unforce', true);
+
+                ( $fixture1.hasClass('force') ).should.be.true();
+                ( $fixture1.hasClass('unforce') ).should.be.true();
+                ( $fixture2.hasClass('unforce') ).should.be.true();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should force remove classes', function() {
+
+                var $fixture1 = $('#toggleClass1');
+                var $fixture2 = $('#toggleClass2');
+                var $fixture3 = $('#toggleClass1, #toggleClass2');
+
+                var $toggle1 = $fixture1.toggleClass( 'force', false );
+                var $toggle2 = $fixture3.toggleClass( 'unforce', false );
+
+                ( $fixture1.hasClass('force') ).should.be.false();
+                ( $fixture1.hasClass('unforce') ).should.be.false();
+                ( $fixture2.hasClass('unforce') ).should.be.false();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+        });
+
+        describe( 'when toggling multiple classes', function() {
+
+            it( 'should add the classes if they were missing' , function() {
+
+                var $fixture1 = $('#toggleMulti1');
+                var $fixture2 = $('#toggleMulti2');
+                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+
+                var $toggle1 = $fixture1.toggleClass('fluffy wuffy');
+                var $toggle2 = $fixture3.toggleClass('green blue');
+
+                ( $fixture1.hasClass('fluffy') ).should.be.true();
+                ( $fixture1.hasClass('wuffy') ).should.be.true();
+                ( $fixture1.hasClass('green') ).should.be.true();
+                ( $fixture1.hasClass('blue') ).should.be.true();
+                ( $fixture2.hasClass('green') ).should.be.true();
+                ( $fixture2.hasClass('blue') ).should.be.true();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should remove the classes if they existed', function() {
+
+                var $fixture1 = $('#toggleMulti1');
+                var $fixture2 = $('#toggleMulti2');
+                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+
+                var $toggle1 = $fixture1.toggleClass('a aa');
+                var $toggle2 = $fixture3.toggleClass('b bb');
+
+                ( $fixture1.hasClass('a') ).should.be.false();
+                ( $fixture1.hasClass('aa') ).should.be.false();
+                ( $fixture1.hasClass('b') ).should.be.false();
+                ( $fixture1.hasClass('bb') ).should.be.false();
+                ( $fixture2.hasClass('b') ).should.be.false();
+                ( $fixture2.hasClass('bb') ).should.be.false();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should force add multiple classes', function() {
+
+                var $fixture1 = $('#toggleMulti1');
+                var $fixture2 = $('#toggleMulti2');
+                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+
+                var $toggle1 = $fixture1.toggleClass('force superforce', true );
+                var $toggle2 = $fixture3.toggleClass('unforce superunforce', true );
+
+                ( $fixture1.hasClass('force') ).should.be.true();
+                ( $fixture1.hasClass('superforce') ).should.be.true();
+                ( $fixture1.hasClass('unforce') ).should.be.true();
+                ( $fixture1.hasClass('superunforce') ).should.be.true();
+                ( $fixture2.hasClass('unforce') ).should.be.true();
+                ( $fixture2.hasClass('superunforce') ).should.be.true();
+
+                ( $toggle1 ).should.be.an.instanceOf(Object);
+                ( $toggle1 ).should.be.an.instanceOf($);
+                ( $toggle2 ).should.be.an.instanceOf(Object);
+                ( $toggle2 ).should.be.an.instanceOf($);
+
+            });
+
+            it( 'should force remove multiple classes', function() {
+
+                var $fixture1 = $('#toggleMulti1');
+                var $fixture2 = $('#toggleMulti2');
+                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+
+                var $toggle1 = $fixture1.toggleClass('force superforce', false );
+                var $toggle2 = $fixture3.toggleClass('unforce superunforce cc', false );
+
+                ( $fixture1.hasClass('force') ).should.be.false();
+                ( $fixture1.hasClass('superforce') ).should.be.false();
+                ( $fixture1.hasClass('unforce') ).should.be.false();
+                ( $fixture1.hasClass('superunforce') ).should.be.false();
+                ( $fixture1.hasClass('cc') ).should.be.false();
+                ( $fixture2.hasClass('unforce') ).should.be.false();
+                ( $fixture2.hasClass('superunforce') ).should.be.false();
+                ( $fixture2.hasClass('cc') ).should.be.false();
 
                 ( $toggle1 ).should.be.an.instanceOf(Object);
                 ( $toggle1 ).should.be.an.instanceOf($);
