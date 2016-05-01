@@ -170,48 +170,44 @@ describe( 'attributes', function() {
 
         describe( 'when checking for a single class', function() {
 
+            var $fixture = $('#attribute-fixture');
+            var $multiFixture = $('#hasclass1, #hasclass2, #hasclass3');
+
+            var has = $fixture.hasClass('attribute-class');
+            var multihas = $multiFixture.hasClass('z');
+            var hasNot = $fixture.hasClass('attribute-classy');
+            var multiHasNot = $multiFixture.hasClass('moolah');
+
             it( 'should return true if class is present' , function() {
-
-                var has = $('#attribute-fixture').hasClass('attribute-class');
                 has.should.be.true();
-
-                has = $('#hasclass1, #hasclass2, #hasclass3').hasClass('z');
-                has.should.be.true();
-
+                multihas.should.be.true();
             });
 
             it( 'should return false if class is missing' , function() {
-
-                var hasNot = $('#attribute-fixture').hasClass('attribute-classy');
                 hasNot.should.be.false();
-
-                hasNot = $('#hasclass1, #hasclass2, #hasclass3').hasClass('moolah');
-                hasNot.should.be.false();
-
+                multiHasNot.should.be.false();
             });
 
         });
 
         describe( 'when checking for a multiple classes', function() {
 
+            var $fixture = $('#hasclass1');
+            var $multiFixture = $('#hasclass1, #hasclass2, #hasclass3');
+
+            // var has1 = $fixture.hasClass('x y');
+            // var has2 = $multiFixture.hasClass('a b');
+            // var has3 = $fixture.hasClass('y z');
+            // var has4 = $multiFixture.hasClass('y z');
+
             it( 'should return true if all classes are present' , function() {
-
-                var has = $('#hasclass1').hasClass('x y');
-                has.should.be.true();
-
-                has = $('#hasclass1, #hasclass2, #hasclass3').hasClass('a b');
-                has.should.be.true();
-
+                has1.should.be.true();
+                has2.should.be.true();
             });
 
             it( 'should return false if any classes are missing' , function() {
-
-                var hasNot = $('#hasclass1').hasClass('y z');
-                hasNot.should.be.false();
-
-                hasNot = $('#hasclass1, #hasclass2, #hasclass3').hasClass('y z');
-                hasNot.should.be.false();
-
+                has3.should.be.false();
+                has4.should.be.false();
             });
 
         });
@@ -220,17 +216,20 @@ describe( 'attributes', function() {
 
     describe( '.removeClass()', function() {
 
+        var $fixture1 = $('#removeClass1');
+        var $fixture2 = $('#removeClass2');
+        var $fixture3 = $('#removeClass1, #removeClass2');
+
         describe( 'when an integer, or falsey value', function() {
 
             it( 'should not change classList' , function() {
 
-                var $fixture = $('#removeClass1');
-                var initial = $fixture[0].classList.toString();
+                var initial =    $fixture1[0].classList.toString();
 
-                var $empty = $fixture.removeClass('');
-                var $integer = $fixture.removeClass( 3 );
-                var $null = $fixture.removeClass( null );
-                var $undefined = $fixture.removeClass( undefined );
+                var $empty =     $fixture1.removeClass('');
+                var $integer =   $fixture1.removeClass( 3 );
+                var $null =      $fixture1.removeClass( null );
+                var $undefined = $fixture1.removeClass( undefined );
 
                 ( $empty ).should.be.an.instanceOf(Object);
                 ( $empty ).should.be.an.instanceOf($);
@@ -241,7 +240,7 @@ describe( 'attributes', function() {
                 ( $integer ).should.be.an.instanceOf(Object);
                 ( $integer ).should.be.an.instanceOf($);
 
-                var final = $fixture[0].classList.toString();
+                var final = $fixture1[0].classList.toString();
 
                 ( final ).should.be.equal( initial );
 
@@ -253,10 +252,11 @@ describe( 'attributes', function() {
 
             it( 'should remove all classes on a single element' , function() {
 
-                var $fixture = $('#removeClass1')
-                                    .clone()
-                                    .attr('id','')
-                                    .appendTo( $('attribute-fixture') );
+                var $fixture =
+                    $fixture1
+                        .clone()
+                        .attr('id','')
+                        .appendTo( $('attribute-fixture') );
 
                 $fixture.removeClass();
                 ( $fixture[0].className ).should.equal( '' );
@@ -273,15 +273,11 @@ describe( 'attributes', function() {
 
             it( 'should not have the "a" or "aa" class' , function() {
 
-                var $fixture = $('#removeClass1');
-                var $fixture2 = $('#removeClass2');
-                var $fixture3 = $('#removeClass1, #removeClass2');
-
-                var $remove1 = $fixture.removeClass('a');
+                var $remove1 = $fixture1.removeClass('a');
                 var $remove2 = $fixture3.removeClass('aa');
 
-                ( $fixture.hasClass('a') ).should.be.false();
-                ( $fixture.hasClass('aa') ).should.be.false();
+                ( $fixture1.hasClass('a') ).should.be.false();
+                ( $fixture1.hasClass('aa') ).should.be.false();
                 ( $fixture2.hasClass('aa') ).should.be.false();
 
                 ( $remove1 ).should.be.an.instanceOf(Object);
@@ -297,10 +293,6 @@ describe( 'attributes', function() {
         describe( 'when removing multiple classes', function() {
 
             it( 'should not have the "b", "bb", "c" or "cc" classes', function() {
-
-                var $fixture1 = $('#removeClass1');
-                var $fixture2 = $('#removeClass2');
-                var $fixture3 = $('#removeClass1, #removeClass2');
 
                 var $remove1 = $fixture1.removeClass('b bb');
                 var $remove2 = $fixture3.removeClass('c cc');
@@ -326,11 +318,19 @@ describe( 'attributes', function() {
 
     describe( '.toggleClass()', function() {
 
+        var $fixture =  $('#addClass1');
+        var $fixture1 = $('#toggleClass1');
+        var $fixture2 = $('#toggleClass2');
+        var $fixture3 = $('#toggleClass1, #toggleClass2');
+
+        var $multi1 = $('#toggleMulti1');
+        var $multi2 = $('#toggleMulti2');
+        var $multi3 = $('#toggleMulti1, #toggleMulti2');
+
         describe( 'when an integer, or falsey value', function() {
 
             it( 'should not change classList' , function() {
 
-                var $fixture = $('#addClass1');
                 var initial = $fixture[0].className;
 
                 var $empty = $fixture.toggleClass('');
@@ -359,10 +359,6 @@ describe( 'attributes', function() {
 
             it( 'should add the class if it was missing' , function() {
 
-                var $fixture1 = $('#toggleClass1');
-                var $fixture2 = $('#toggleClass2');
-                var $fixture3 = $('#toggleClass1, #toggleClass2');
-
                 var $toggle1 = $fixture1.toggleClass('tinky');
                 var $toggle2 = $fixture3.toggleClass('winky');
 
@@ -378,10 +374,6 @@ describe( 'attributes', function() {
             });
 
             it( 'should remove the class if it existed', function() {
-
-                var $fixture1 = $('#toggleClass1');
-                var $fixture2 = $('#toggleClass2');
-                var $fixture3 = $('#toggleClass1, #toggleClass2');
 
                 var $toggle1 = $fixture1.toggleClass('a');
                 var $toggle2 = $fixture3.toggleClass('aa');
@@ -399,10 +391,6 @@ describe( 'attributes', function() {
 
             it( 'should add class, and remove class' , function() {
 
-                var $fixture1 = $('#toggleClass1');
-                var $fixture2 = $('#toggleClass2');
-                var $fixture3 = $('#toggleClass1, #toggleClass2');
-
                 var $toggle = $fixture3.toggleClass('xx');
 
                 ( $fixture1.hasClass('xx') ).should.be.false();
@@ -414,10 +402,6 @@ describe( 'attributes', function() {
             });
 
             it( 'should force add classes', function() {
-
-                var $fixture1 = $('#toggleClass1');
-                var $fixture2 = $('#toggleClass2');
-                var $fixture3 = $('#toggleClass1, #toggleClass2');
 
                 var $toggle1 = $fixture1.toggleClass('force', true);
                 var $toggle2 = $fixture3.toggleClass('unforce', true);
@@ -434,10 +418,6 @@ describe( 'attributes', function() {
             });
 
             it( 'should force remove classes', function() {
-
-                var $fixture1 = $('#toggleClass1');
-                var $fixture2 = $('#toggleClass2');
-                var $fixture3 = $('#toggleClass1, #toggleClass2');
 
                 var $toggle1 = $fixture1.toggleClass( 'force', false );
                 var $toggle2 = $fixture3.toggleClass( 'unforce', false );
@@ -459,19 +439,15 @@ describe( 'attributes', function() {
 
             it( 'should add the classes if they were missing' , function() {
 
-                var $fixture1 = $('#toggleMulti1');
-                var $fixture2 = $('#toggleMulti2');
-                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+                var $toggle1 = $multi1.toggleClass('fluffy wuffy');
+                var $toggle2 = $multi3.toggleClass('green blue');
 
-                var $toggle1 = $fixture1.toggleClass('fluffy wuffy');
-                var $toggle2 = $fixture3.toggleClass('green blue');
-
-                ( $fixture1.hasClass('fluffy') ).should.be.true();
-                ( $fixture1.hasClass('wuffy') ).should.be.true();
-                ( $fixture1.hasClass('green') ).should.be.true();
-                ( $fixture1.hasClass('blue') ).should.be.true();
-                ( $fixture2.hasClass('green') ).should.be.true();
-                ( $fixture2.hasClass('blue') ).should.be.true();
+                ( $multi1.hasClass('fluffy') ).should.be.true();
+                ( $multi1.hasClass('wuffy') ).should.be.true();
+                ( $multi1.hasClass('green') ).should.be.true();
+                ( $multi1.hasClass('blue') ).should.be.true();
+                ( $multi2.hasClass('green') ).should.be.true();
+                ( $multi2.hasClass('blue') ).should.be.true();
 
                 ( $toggle1 ).should.be.an.instanceOf(Object);
                 ( $toggle1 ).should.be.an.instanceOf($);
@@ -482,19 +458,15 @@ describe( 'attributes', function() {
 
             it( 'should remove the classes if they existed', function() {
 
-                var $fixture1 = $('#toggleMulti1');
-                var $fixture2 = $('#toggleMulti2');
-                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+                var $toggle1 = $multi1.toggleClass('a aa');
+                var $toggle2 = $multi3.toggleClass('b bb');
 
-                var $toggle1 = $fixture1.toggleClass('a aa');
-                var $toggle2 = $fixture3.toggleClass('b bb');
-
-                ( $fixture1.hasClass('a') ).should.be.false();
-                ( $fixture1.hasClass('aa') ).should.be.false();
-                ( $fixture1.hasClass('b') ).should.be.false();
-                ( $fixture1.hasClass('bb') ).should.be.false();
-                ( $fixture2.hasClass('b') ).should.be.false();
-                ( $fixture2.hasClass('bb') ).should.be.false();
+                ( $multi1.hasClass('a') ).should.be.false();
+                ( $multi1.hasClass('aa') ).should.be.false();
+                ( $multi1.hasClass('b') ).should.be.false();
+                ( $multi1.hasClass('bb') ).should.be.false();
+                ( $multi2.hasClass('b') ).should.be.false();
+                ( $multi2.hasClass('bb') ).should.be.false();
 
                 ( $toggle1 ).should.be.an.instanceOf(Object);
                 ( $toggle1 ).should.be.an.instanceOf($);
@@ -505,19 +477,15 @@ describe( 'attributes', function() {
 
             it( 'should force add multiple classes', function() {
 
-                var $fixture1 = $('#toggleMulti1');
-                var $fixture2 = $('#toggleMulti2');
-                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+                var $toggle1 = $multi1.toggleClass('force superforce', true );
+                var $toggle2 = $multi3.toggleClass('unforce superunforce', true );
 
-                var $toggle1 = $fixture1.toggleClass('force superforce', true );
-                var $toggle2 = $fixture3.toggleClass('unforce superunforce', true );
-
-                ( $fixture1.hasClass('force') ).should.be.true();
-                ( $fixture1.hasClass('superforce') ).should.be.true();
-                ( $fixture1.hasClass('unforce') ).should.be.true();
-                ( $fixture1.hasClass('superunforce') ).should.be.true();
-                ( $fixture2.hasClass('unforce') ).should.be.true();
-                ( $fixture2.hasClass('superunforce') ).should.be.true();
+                ( $multi1.hasClass('force') ).should.be.true();
+                ( $multi1.hasClass('superforce') ).should.be.true();
+                ( $multi1.hasClass('unforce') ).should.be.true();
+                ( $multi1.hasClass('superunforce') ).should.be.true();
+                ( $multi2.hasClass('unforce') ).should.be.true();
+                ( $multi2.hasClass('superunforce') ).should.be.true();
 
                 ( $toggle1 ).should.be.an.instanceOf(Object);
                 ( $toggle1 ).should.be.an.instanceOf($);
@@ -528,21 +496,17 @@ describe( 'attributes', function() {
 
             it( 'should force remove multiple classes', function() {
 
-                var $fixture1 = $('#toggleMulti1');
-                var $fixture2 = $('#toggleMulti2');
-                var $fixture3 = $('#toggleMulti1, #toggleMulti2');
+                var $toggle1 = $multi1.toggleClass('force superforce', false );
+                var $toggle2 = $multi3.toggleClass('unforce superunforce cc', false );
 
-                var $toggle1 = $fixture1.toggleClass('force superforce', false );
-                var $toggle2 = $fixture3.toggleClass('unforce superunforce cc', false );
-
-                ( $fixture1.hasClass('force') ).should.be.false();
-                ( $fixture1.hasClass('superforce') ).should.be.false();
-                ( $fixture1.hasClass('unforce') ).should.be.false();
-                ( $fixture1.hasClass('superunforce') ).should.be.false();
-                ( $fixture1.hasClass('cc') ).should.be.false();
-                ( $fixture2.hasClass('unforce') ).should.be.false();
-                ( $fixture2.hasClass('superunforce') ).should.be.false();
-                ( $fixture2.hasClass('cc') ).should.be.false();
+                ( $multi1.hasClass('force') ).should.be.false();
+                ( $multi1.hasClass('superforce') ).should.be.false();
+                ( $multi1.hasClass('unforce') ).should.be.false();
+                ( $multi1.hasClass('superunforce') ).should.be.false();
+                ( $multi1.hasClass('cc') ).should.be.false();
+                ( $multi2.hasClass('unforce') ).should.be.false();
+                ( $multi2.hasClass('superunforce') ).should.be.false();
+                ( $multi2.hasClass('cc') ).should.be.false();
 
                 ( $toggle1 ).should.be.an.instanceOf(Object);
                 ( $toggle1 ).should.be.an.instanceOf($);
