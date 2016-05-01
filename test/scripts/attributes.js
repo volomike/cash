@@ -98,9 +98,10 @@ describe( 'attributes', function() {
         var $attr2 = $fixture.attr( null );
         var $attr3 = $fixture.attr( undefined );
         var $attr4 = $fixture.attr( 5 );
-        var $attr5 = $fixture.attr( "" );
+        var $attr5 = $fixture.attr( '' );
         var $attr6 = $fixture.attr( true );
         var $attr7 = $fixture.attr( false );
+        var $attr8 = $fixture.attr({ drink: 'Moët', eat: 'Truffles' });
 
         var $hasattr = $fixture.attr( 'data-💰' );
         var $hasnotattr = $fixture.attr( 'extraordinary' );
@@ -149,6 +150,17 @@ describe( 'attributes', function() {
             });
             it( 'should return "undefined" when attribute doesnt exist' , function() {
                 ( $hasnotattr === undefined ).should.be.true();
+            });
+        });
+
+        describe( 'when provided an object', function() {
+            it( messages.collection , function() {
+                ( $attr8 ).should.be.an.instanceOf(Object);
+                ( $attr8 ).should.be.an.instanceOf($);
+            });
+            it( 'should set the attributes for each property/value' , function() {
+                ( $attr8[0].getAttribute('drink') === 'Moët' ).should.be.true();
+                ( $attr8[0].getAttribute('eat') === 'Truffles' ).should.be.true();
             });
         });
 
