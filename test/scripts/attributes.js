@@ -102,8 +102,12 @@ describe( 'attributes', function() {
         var $attr6 = $fixture.attr( true );
         var $attr7 = $fixture.attr( false );
         var $attr8 = $fixture.attr({ drink: 'Moët', eat: 'Truffles' });
+        var $window = $( window ).attr( '💰', true );
+        var $document = $( document ).attr( '💰', true );
 
         var $hasattr = $fixture.attr( 'data-💰' );
+        var $winhasattr = $window.attr( '💰' );
+        var $dochasattr = $document.attr( '💰' );
         var $hasnotattr = $fixture.attr( 'extraordinary' );
 
         describe( 'when no argument passed', function() {
@@ -147,6 +151,8 @@ describe( 'attributes', function() {
         describe( 'when provided a single string argument', function() {
             it( 'should return value when attribute exists' , function() {
                 $hasattr.should.be.equal( 'cash' );
+                $winhasattr.should.be.equal( true );
+                $dochasattr.should.be.equal( true );
             });
             it( 'should return "undefined" when attribute doesnt exist' , function() {
                 ( $hasnotattr === undefined ).should.be.true();
@@ -195,10 +201,10 @@ describe( 'attributes', function() {
             var $fixture = $('#hasclass1');
             var $multiFixture = $('#hasclass1, #hasclass2, #hasclass3');
 
-            // var has1 = $fixture.hasClass('x y');
-            // var has2 = $multiFixture.hasClass('a b');
-            // var has3 = $fixture.hasClass('y z');
-            // var has4 = $multiFixture.hasClass('y z');
+            var has1 = $fixture.hasClass('x y');
+            var has2 = $multiFixture.hasClass('a b');
+            var has3 = $fixture.hasClass('y z');
+            var has4 = $multiFixture.hasClass('y z');
 
             it( 'should return true if all classes are present' , function() {
                 has1.should.be.true();
