@@ -8,7 +8,7 @@ function CashEvent(node, eventName, delegate, originalCallback, runOnce) { // js
         if ( delegate ) {
           t = e.target;
 
-          while ( !matches(t, delegate) ) {
+          while ( t && !matches(t, delegate) ) {
             if (t === this) {
               return (t = false);
             }
@@ -69,7 +69,7 @@ fn.extend({
     }
 
     return this.each(v => {
-      return new CashEvent(v, eventName, delegate, callback);
+      return new CashEvent(v, eventName, delegate, callback, runOnce);
     });
   },
 

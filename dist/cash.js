@@ -476,7 +476,7 @@
       if (delegate) {
         t = e.target;
 
-        while (!matches(t, delegate)) {
+        while (t && !matches(t, delegate)) {
           if (t === this) {
             return (t = false);
           }
@@ -540,7 +540,7 @@
       }
 
       return this.each(function (v) {
-        return new CashEvent(v, eventName, delegate, callback);
+        return new CashEvent(v, eventName, delegate, callback, runOnce);
       });
     },
 
