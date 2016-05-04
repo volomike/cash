@@ -282,17 +282,46 @@ QUnit.test( "on", function( assert ) {
     this.textContent = i;
   });
   $('.event-fixture').trigger('click');
-  assert.equal($('.event-fixture')[0].textContent, 2, "on Passed!" );
+  $('.event-fixture').trigger('click');
+  $('.event-fixture').off('click');
+  assert.equal($('.event-fixture')[0].textContent, 3, "on Passed!" );
+});
+
+QUnit.test( "one", function( assert ) {
+  var i = 1;
+  $('.event-fixture').one('click', function(){
+    i++;
+    this.textContent = i;
+  });
+  $('.event-fixture').trigger('click');
+  $('.event-fixture').trigger('click');
+  $('.event-fixture').off('click');
+  assert.equal($('.event-fixture')[0].textContent, 2, "one Passed!" );
+});
+
+QUnit.test( "one(delegate)", function( assert ) {
+  var i = 1;
+  $('#qunit-fixture').one('click','.delegate-fixture', function(){
+    i++;
+    this.textContent = i;
+  });
+  $('.delegate-fixture').trigger('click');
+  $('.delegate-fixture').trigger('click');
+  $('#qunit-fixture').off('click');
+  assert.equal($('.delegate-fixture')[0].textContent, 2, "one(delegate) Passed!" );
 });
 
 QUnit.test( "on(delegate)", function( assert ) {
   var i = 1;
   $('#qunit-fixture').on('click','.delegate-fixture', function(){
     i++;
+    console.log(this);
     this.textContent = i;
   });
-  $('.delegate-trigger').trigger('click');
-  assert.equal($('.delegate-fixture')[0].textContent, 2, "on(delegate) Passed!" );
+  $('.delegate-fixture').trigger('click');
+  $('.delegate-fixture').trigger('click');
+  $('#qunit-fixture').off('click');
+  assert.equal($('.delegate-fixture')[0].textContent, 3, "on(delegate) Passed!" );
 });
 
 QUnit.test( "off", function( assert ) {
