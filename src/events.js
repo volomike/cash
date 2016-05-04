@@ -42,33 +42,33 @@ fn.extend({
       return this;
     }
 
-    if ( delegate ) {
-      originalCallback = callback;
-      callback = function(e) {
-        var t = e.target;
+    originalCallback = callback;
 
-        while (!matches(t, delegate)) {
+    callback = function(e) {
+      var t = this;
+
+      if ( delegate ) {
+        t = e.target;
+
+        while ( !matches(t, delegate) ) {
           if (t === this) {
             return (t = false);
           }
           t = t.parentNode;
         }
+      }
 
-        if (t) {
-          originalCallback.call(t, e);
+      if (t) {
+        originalCallback.call(t, e, e.data);
+        if ( runOnce ) {
+          removeEvent(this, eventName, callback);
         }
-      };
-    }
+      }
+
+    };
 
     return this.each(v => {
-      var finalCallback = callback;
-      if ( runOnce ) {
-        finalCallback = function(){
-          callback.apply(this,arguments);
-          removeEvent(v, eventName, finalCallback);
-        };
-      }
-      registerEvent(v, eventName, finalCallback);
+      registerEvent(v, eventName, callback);
     });
   },
 
