@@ -467,36 +467,60 @@
     };
   });
 
-  function registerEvent(node, eventName, callback) {
-    var eventCache = getData(node, "_cashEvents") || setData(node, "_cashEvents", {});
-    eventCache[eventName] = eventCache[eventName] || [];
-    eventCache[eventName].push(callback);
-    node.addEventListener(eventName, callback);
-  }
+  function CashEvent(node, eventName, delegate, originalCallback, runOnce) {
+    // jshint ignore:line
 
-  function removeEvent(node, eventName, callback) {
-    var eventCache = getData(node, "_cashEvents")[eventName];
-    if (callback) {
-      node.removeEventListener(eventName, callback);
-    } else {
-      each(eventCache, function (event) {
-        node.removeEventListener(eventName, event);
-      });
-      eventCache = [];
-    }
+    var eventCache = getData(node, "_cashEvents") || setData(node, "_cashEvents", {}), callback = function (e) {
+      var t = this;
+
+      if (delegate) {
+        t = e.target;
+
+        while (!matches(t, delegate)) {
+          if (t === this) {
+            return (t = false);
+          }
+          t = t.parentNode;
+        }
+      }
+
+      if (t) {
+        originalCallback.call(t, e, e.data);
+        if (runOnce) {
+          remove();
+        }
+      }
+    }, remove = function (c) {
+      if (!c || originalCallback === c) {
+        node.removeEventListener(eventName, callback);
+      }
+    };
+
+    this.remove = remove;
+
+    node.addEventListener(eventName, callback);
+
+    eventCache[eventName] = eventCache[eventName] || [];
+    eventCache[eventName].push(this);
+
+    return this;
   }
 
   fn.extend({
     off: function (eventName, callback) {
       return this.each(function (v) {
-        return removeEvent(v, eventName, callback);
+        var eventCache = getData(v, "_cashEvents");
+        each(eventCache[eventName], function (event) {
+          return event.remove(callback);
+        });
+        if (!callback) {
+          eventCache[eventName] = [];
+        }
       });
     },
 
     on: function (eventName, delegate, callback, runOnce) {
       // jshint ignore:line
-
-      var originalCallback;
 
       if (!isString(eventName)) {
         for (var key in eventName) {
@@ -505,43 +529,18 @@
         return this;
       }
 
-      if (isFunction(delegate)) {
-        callback = delegate;
-        delegate = null;
-      }
-
       if (eventName === "ready") {
         onReady(callback);
         return this;
       }
 
-      if (delegate) {
-        originalCallback = callback;
-        callback = function (e) {
-          var t = e.target;
-
-          while (!matches(t, delegate)) {
-            if (t === this) {
-              return (t = false);
-            }
-            t = t.parentNode;
-          }
-
-          if (t) {
-            originalCallback.call(t, e);
-          }
-        };
+      if (isFunction(delegate)) {
+        callback = delegate;
+        delegate = null;
       }
 
       return this.each(function (v) {
-        var finalCallback = callback;
-        if (runOnce) {
-          finalCallback = function () {
-            callback.apply(this, arguments);
-            removeEvent(v, eventName, finalCallback);
-          };
-        }
-        registerEvent(v, eventName, finalCallback);
+        return new CashEvent(v, eventName, delegate, callback);
       });
     },
 

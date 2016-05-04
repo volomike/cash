@@ -1,29 +1,55 @@
-function registerEvent(node, eventName, callback) {
-  var eventCache = getData(node,'_cashEvents') || setData(node, '_cashEvents', {});
-  eventCache[eventName] = eventCache[eventName] || [];
-  eventCache[eventName].push(callback);
-  node.addEventListener(eventName, callback);
-}
+function CashEvent(node, eventName, delegate, originalCallback, runOnce) { // jshint ignore:line
 
-function removeEvent(node, eventName, callback){
-  var eventCache = getData(node,'_cashEvents')[eventName];
-  if (callback) {
-    node.removeEventListener(eventName, callback);
-  } else {
-    each(eventCache, event => { node.removeEventListener(eventName, event); });
-    eventCache = [];
-  }
+  var eventCache = getData(node,'_cashEvents') || setData(node, '_cashEvents', {}),
+
+      callback = function(e) {
+        var t = this;
+
+        if ( delegate ) {
+          t = e.target;
+
+          while ( !matches(t, delegate) ) {
+            if (t === this) {
+              return (t = false);
+            }
+            t = t.parentNode;
+          }
+        }
+
+        if (t) {
+          originalCallback.call(t, e, e.data);
+          if ( runOnce ) { remove(); }
+        }
+
+      },
+
+      remove = function(c){
+        if ( !c || originalCallback === c ) {
+          node.removeEventListener(eventName, callback);
+        }
+      };
+
+  this.remove = remove;
+
+  node.addEventListener(eventName, callback);
+
+  eventCache[eventName] = eventCache[eventName] || [];
+  eventCache[eventName].push(this);
+
+  return this;
 }
 
 fn.extend({
 
   off(eventName, callback) {
-    return this.each(v => removeEvent(v, eventName, callback) );
+    return this.each(v => {
+        var eventCache = getData(v,'_cashEvents');
+        each(eventCache[eventName], event => event.remove(callback) );
+        if ( !callback ) { eventCache[eventName] = []; }
+      });
   },
 
   on(eventName, delegate, callback, runOnce) { // jshint ignore:line
-
-    var originalCallback;
 
     if ( !isString(eventName) ) {
       for (var key in eventName) {
@@ -32,43 +58,18 @@ fn.extend({
       return this;
     }
 
-    if ( isFunction(delegate) ) {
-      callback = delegate;
-      delegate = null;
-    }
-
     if ( eventName === 'ready' ) {
       onReady(callback);
       return this;
     }
 
-    originalCallback = callback;
-
-    callback = function(e) {
-      var t = this;
-
-      if ( delegate ) {
-        t = e.target;
-
-        while ( !matches(t, delegate) ) {
-          if (t === this) {
-            return (t = false);
-          }
-          t = t.parentNode;
-        }
-      }
-
-      if (t) {
-        originalCallback.call(t, e, e.data);
-        if ( runOnce ) {
-          removeEvent(this, eventName, callback);
-        }
-      }
-
-    };
+    if ( isFunction(delegate) ) {
+      callback = delegate;
+      delegate = null;
+    }
 
     return this.each(v => {
-      registerEvent(v, eventName, callback);
+      return new CashEvent(v, eventName, delegate, callback);
     });
   },
 
