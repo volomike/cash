@@ -7,6 +7,15 @@ var idMatch    = /^#[\w-]*$/,
     htmlMatch =  /<.+>/,
     singlet    = /^\w+$/;
 
+/**
+ * Find elements matching a selector using the fastest method.
+ *
+ * @type {Function}
+ * @param {String} selector - Selector to filter elements
+ * @param {Node} [context=document] - Node to start the search
+ * @returns {NodeList|HTMLCollection}
+ *
+ */
 function find(selector,context) {
   context = context || doc;
   var elems = (
@@ -19,6 +28,14 @@ function find(selector,context) {
   return elems;
 }
 
+/**
+ * Convert a string to HTML elements.
+ *
+ * @type {Function}
+ * @param {String} str - String to parse as HTML
+ * @returns {NodeList}
+ *
+ */
 var frag, tmp;
 function parseHTML(str) {
   frag = frag || doc.createDocumentFragment();
@@ -27,11 +44,28 @@ function parseHTML(str) {
   return tmp.childNodes;
 }
 
+/**
+ * Run a callback function after the document is ready.
+ *
+ * @type {Function}
+ * @param {Function} fn - Callback function
+ *
+ */
 function onReady(fn) {
   if ( doc.readyState !== 'loading' ) { fn(); }
   else { doc.addEventListener('DOMContentLoaded', fn); }
 }
 
+/**
+ * Class for Cash collections, typically created by calling `$(selector,context)` or
+ * `cash(selector,context)` instead of directly using the `Init` function.
+ *
+ * @class
+ * @param {String|Node|Node[]|Function|CashCollection} selector - Selector to filter nodes, string of HTML, nodes, an array of nodes, or a function to be called when the document is ready.
+ * @param {Node} [context=document] - Node to start the search
+ * @returns {CashCollection}
+ *
+ */
 function Init(selector,context){
 
   if ( !selector ) { return this; }
@@ -73,10 +107,34 @@ function Init(selector,context){
   return this;
 }
 
+/**
+ * Create a Cash collection
+ *
+ * @type {Class}
+ * @param {String|Node|Node[]|Function|CashCollection} selector - Selector to filter nodes, string of HTML, nodes, an array of nodes, or a function to be called when the document is ready.
+ * @param {Node} [context=document] - Node to start the search
+ * @returns {CashCollection}
+ *
+ * @example
+ *  $(function(){
+ *    var $divs = $('div'),
+ *        $heading = $(document.querySelector('h1')),
+ *        $myElement = $('#myElement'),
+ *        $win = $(window);
+ *
+ *  });
+ */
 function cash(selector,context) {
   return new Init(selector,context);
 }
 
+/**
+ * Collection prototype containing all the methods for manipulating collections.
+ *
+ * @type {Object}
+ * @lends Init.prototype
+ *
+ */
 var fn = cash.fn = cash.prototype = Init.prototype = { // jshint ignore:line
   constructor: cash,
   cash: true,
