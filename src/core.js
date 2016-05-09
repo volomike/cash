@@ -1,6 +1,6 @@
-var noop = function(){},
-    isFunction = function(item){ return typeof item === typeof noop; },
-    isString = function(item) { return typeof item === typeof ''; };
+function noop(){}
+function isFunction(item){ return typeof item === typeof noop; }
+function isString(item) { return typeof item === typeof ''; }
 
 var idMatch    = /^#[\w-]*$/,
     classMatch = /^\.[\w-]*$/,
