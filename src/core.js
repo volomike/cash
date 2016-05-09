@@ -11,6 +11,7 @@ var idMatch    = /^#[\w-]*$/,
  * Find elements matching a selector using the fastest method.
  *
  * @type {Function}
+ * @private
  * @param {String} selector - Selector to filter elements
  * @param {Node} [context=document] - Node to start the search
  * @returns {NodeList|HTMLCollection}
@@ -34,6 +35,7 @@ function find(selector,context) {
  * @type {Function}
  * @param {String} str - String to parse as HTML
  * @returns {NodeList}
+ * @memberof cash
  *
  */
 var frag, tmp;
