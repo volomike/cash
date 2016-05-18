@@ -401,14 +401,17 @@
 
   });
 
-  var getPrefixedProp = (function () {
-    var cache = {}, div = doc.createElement("div"), style = div.style, camelRegex = /(?:^\w|[A-Z]|\b\w)/g, whiteSpace = /[\s-]+/g;
-
-    function camelCase(str) {
+  var camelCase = (function () {
+    var camelRegex = /(?:^\w|[A-Z]|\b\w)/g, whiteSpace = /[\s-_]+/g;
+    return function (str) {
       return str.replace(camelRegex, function (letter, index) {
         return letter[index === 0 ? "toLowerCase" : "toUpperCase"]();
       }).replace(whiteSpace, "");
-    }
+    };
+  }());
+
+  var getPrefixedProp = (function () {
+    var cache = {}, doc = document, div = doc.createElement("div"), style = div.style;
 
     return function (prop) {
       prop = camelCase(prop);
@@ -428,6 +431,9 @@
       return cache[prop];
     };
   }());
+
+  cash.prefixedProp = getPrefixedProp;
+  cash.camelCase = camelCase;
 
   fn.extend({
     css: function (prop, value) {
