@@ -1,5 +1,4 @@
 // @todo: Convert % to px
-// @todo: Use Element.Animate in supported browsers?
 // @todo: Ensure compatibility between Element.animate & requestAnimationFrame version
 // @todo: Compatibility in ease functions & Element.animate
 // @todo: transform: rotate compatibility. Element.animate seems to rotate the quickest possible way, not the correct way.
@@ -7,12 +6,20 @@
 
 (function($){
 
+  var requestAnimationFrame = window.requestAnimationFrame ||
+                              window.webkitRequestAnimationFrame ||
+                              window.mozRequestAnimationFrame ||
+                              window.msRequestAnimationFrame ||
+                              function(callback){ window.setTimeout(callback, 20); }; // IE Fallback
+
   /** Group all `requestAnimationFrame` calls into one for better performance. */
   var animations = [];
   animations.play = function(){
+    /** Prevent calling `requestAnimationFrame` twice if a frame is already requested */
     animations.frame = animations.frame || requestAnimationFrame(animate);
     animations.playing = true;
   };
+  $.animations = animations;
 
   /** One requestAnimationFrame function */
   function animate(){
@@ -28,8 +35,7 @@
 
     while( i-- ){
       el = animations[i];
-      if ( el && el.playing && !el.render() ) {
-        el.playing = false;
+      if ( el && el() === false ) {
         index = animations.indexOf(el);
         if ( index > -1 ) { animations.splice(index, 1); }
       }
@@ -38,30 +44,71 @@
     animations.frame = requestAnimationFrame(animate);
   }
 
-  window.animations = animations;
 
-  /** Easing delta functions */
-  var easing = {
-
-    linear: function(t){ return t; },
-
-    easeInQuad: function(t){ return t*t; },
-    easeOutQuad: function(t){ return t*(2-t); },
-    easeInOutQuad: function(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; },
-
-    easeInCubic: function(t){ return t*t*t; },
-    easeOutCubic: function(t){ return (--t)*t*t+1; },
-    easeInOutCubic: function(t){ return t<0.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1; },
-
-    easeInQuart: function (t){ return t*t*t*t; },
-    easeOutQuart: function (t){ return 1-(--t)*t*t*t; },
-    easeInOutQuart: function(t){ return t<0.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t; }
-
-  };
-  $.easing = easing;
+////////////////////////////////////////
 
 
-  ////////////////////////////////////////
+
+  /**
+   * Easing delta functions thanks to Nikolay Nemshilov
+   * See http://st-on-it.blogspot.com/2011/05/calculating-cubic-bezier-function.html
+   */
+  var easings = {
+        'linear': function(t){ return t; },
+      },
+      cubicRegex = /cubic-bezier\(([\d\.]+),\s+?([\d\.]+),\s+?([\d\.]+),\s+?([\d\.]+)\)/i
+
+  function Bezier(p1,p2,p3,p4) {
+
+    if ( arguments.length === 1 ) {
+      if ( easings[p1] ) { return easings[p1]; }
+      var cubicParsed = cubicRegex.exec(p1);
+      return easings[p1] = ( cubicParsed ? Bezier.apply(null, cubicParsed.slice(1,5) ) : null );
+    }
+
+    // defining the bezier functions in the polynomial form
+    var Cx = 3 * p1;
+    var Bx = 3 * (p3 - p1) - Cx;
+    var Ax = 1 - Cx - Bx;
+
+    var Cy = 3 * p2;
+    var By = 3 * (p4 - p2) - Cy;
+    var Ay = 1 - Cy - By;
+
+    function bezier_x(t) { return t * (Cx + t * (Bx + t * Ax)); }
+    function bezier_y(t) { return t * (Cy + t * (By + t * Ay)); }
+    // using Newton's method to aproximate the parametric value of x for t
+    function bezier_x_der(t) { return Cx + t * (2*Bx + 3*Ax * t); }
+
+    function find_x_for(t) {
+      var x = t,
+          i = 0,
+          z;
+
+      while (i < 3) { // making 3 iterations max
+        z = bezier_x(x) - t;
+        if (Math.abs(z) < 1e-3) break; // if already close enough
+        x = x - z / bezier_x_der(x);
+        i++;
+      }
+
+      return x;
+    };
+
+    return function(t){ return bezier_y(find_x_for(t)); }
+  }
+
+  $.extend(easings,{
+    'ease':        Bezier(0.25, 0.1, 0.25, 1.0),
+    'ease-in':     Bezier(0.42, 0.0, 1.00, 1.0),
+    'ease-out':    Bezier(0.00, 0.0, 0.58, 1.0),
+    'ease-in-out': Bezier(0.42, 0.0, 0.58, 1.0)
+  });
+  $.easings = easings;
+
+
+////////////////////////////////////////
+
 
   /** Build transform conversion functions with defaults values */
 
@@ -80,11 +127,8 @@
   });
 
   $.each('x y z'.split(' '),function(val){
-    transforms[val] = makeTransformFn('translate'+val.toUpperCase(), 0);
-  });
-
-  $.each('translateX translateY translateZ perspective'.split(' '),function(val){
-    transforms[val] = makeTransformFn(val, 0);
+    var fullName = 'translate'+val.toUpperCase()
+    transforms[fullName] = transforms[val] = makeTransformFn(fullName, 0);
   });
 
   $.each('scale scaleX scaleY scaleZ'.split(' '),function(val){
@@ -92,7 +136,7 @@
   });
 
 
-  ////////////////////////////////////////
+////////////////////////////////////////
 
   /** Split a string from the number and the unit to allow tweening the number. */
   var unitRegex = /(-?[0-9]+(?:\.[0-9]+)?)([a-z%]+)?$/i;
@@ -117,275 +161,343 @@
     return ((elem.offsetWidth/pa.offsetWidth)*100).toFixed(2)+'%';
   }
 
-  ////////////////////////////////////////
 
+////////////////////////////////////////
+
+
+  /** http://stackoverflow.com/a/30583749/1012919 */
+  function decomposeMatrix(a, b, c, d, e, f) {
+
+    var acos = Math.acos, // caching for readability below
+        atan = Math.atan,
+        sqrt = Math.sqrt,
+        pi   = Math.PI,
+        determ = a * d - b * c,
+
+        scaleX = 1,
+        scaleY = 1,
+        skewX,
+        skewY,
+        rotation,
+
+        output = {},
+        r, s;
+
+    // Apply the QR-like decomposition.
+    if (a || b) {
+      r = sqrt(a*a + b*b);
+      rotation = b > 0 ? acos(a / r) : -acos(a / r);
+      scaleX = r;
+      scaleY = determ / r;
+      skewX  = atan((a*c + b*d) / (r*r));
+    } else if (c || d) {
+      s = sqrt(c*c + d*d);
+      rotation = pi * 0.5 - (d > 0 ? acos(-c / s) : -acos(c / s));
+      scaleX = determ / s;
+      scaleY = s;
+      skewY = atan((a*c + b*d) / (s*s));
+    }
+
+    if ( e && e !== '0' ) { output.translateX = e; }
+    if ( f && e !== '0' ) { output.translateY = f; }
+    if ( scaleX !== 1 ) { output.scaleX = scaleX; }
+    if ( scaleY !== 1 ) { output.scaleY = scaleY; }
+    if ( skewX ) { output.skewX = skewX; }
+    if ( skewY ) { output.skewY = skewY; }
+    if ( rotation !== 0 ) { output.rotate = rotation * (180/pi) + 'deg'; }
+
+    return output;
+  }
 
   var transformRegex = /([a-z]+)\((.*?)\)/ig;
-  function getCurrentTransforms(obj){
-    var transformObj = { from: { translateZ: 0 }, to: { translateZ: 0 } };
-    while ( _transform = transformRegex.exec(obj[transformProp]) ){
-      key = _transform[1];
 
-      val = transforms[key]( _transform[2], true );
-      transformObj.from[ key ] = val;
-      transformObj.to[ key ] = val;
+  function getCurrentTransforms(obj){
+
+    /** Set translateZ for animationg speed boost. */
+    var transformObj = { start: { translateZ: 0 }, end: { translateZ: 0 } },
+        currentTransforms = obj[transformProp],
+        _transform = transformRegex.exec(currentTransforms),
+
+        tempObj = {},
+        key, val;
+
+    if ( _transform ) {
+      /** Crap. Did we get a matrix? Guess we gotta parse that. */
+      if ( _transform[1] === 'matrix' ) {
+        tempObj = decomposeMatrix.apply(null, _transform[2].split(/[\s,]+/) );
+      } else {
+        /** Otherwise, we can just loop through all of those wonderfully easy properties */
+        while ( _transform ){
+          tempObj[_transform[1]] = _transform[2];
+          _transform = transformRegex.exec(currentTransforms);
+        }
+      }
     }
+
+    /** Set the start & end properties of the transform equally. The end properties will be overridden later */
+    for ( key in tempObj ) {
+      val = transforms[key](tempObj[key], true );
+      transformObj.start[ key ] = val;
+      transformObj.end[ key ] = val;
+    }
+
     return transformObj;
   }
 
+
+////////////////////////////////////////
+
+
   function getDeltaValue(delta,start,to){
-      var end = to,
-          suffix = 0;
+    var end = to,
+        suffix = 0;
 
-      start = ( start && start.length === 2 ? start[0] : start );
+    start = ( start && start.length === 2 ? start[0] : start );
 
-      if ( to && to.length === 2 ) {
-        end = to[0];
-        suffix = to[1] || 0;
-      }
-
-      return (start + (end - start) * delta) + suffix;
+    if ( to && to.length === 2 ) {
+      end = to[0];
+      suffix = to[1] || 0;
     }
 
-  ////////////////////////////////////////
-
-  function Animation(target, to, duration, opts){
-
-    var me = this,key;
-
-    if ( isNaN(duration) ) {
-      opts = duration;
-      duration = null;
-    } else {
-      me.duration = duration;
-    }
-
-    opts = opts || {};
-    $.extend(me, opts);
-
-    me.target = target;
-    me.isElement = target.nodeType;
-    me.supportAnimate = me.isElement && (opts.supportAnimate && target.animate);
-
-    /** Object to apply the animation to. If element, use the style, otherwise apply it to the target itself. */
-    me.obj = ( me.isElement ? me.target.style : me.target );
-    me.build(to);
-    me.play();
-
-    return me;
+    return (start + (end - start) * delta) + suffix;
   }
 
-  Animation.fn = Animation.prototype = {
 
-    iterations: 1,
-    duration: 400,
-    easing: 'linear',
-    reversed: false,
-    delay: 0,
-    direction: 'normal',
-    supportAnimate: true,
+////////////////////////////////////////
 
-    build: function(to){
-      var me = this,
-          from = me.obj,
-          key, propName, val, start, end, hasTransforms, transformFn;
 
-      // Set from & to as empty objects to be filled
-      me.from = {};
-      me.to = {};
+  function buildProps(obj, start, end, isElement, supportAnimate){
+    var props = {},
+        key, propName, startValue, endValue, hasTransforms, transformFn;
 
-      if ( !me.isElement ) {
-        for (key in to) {
-          me.from[key] = from[key];
-          me.to[key] = to[key];
-        }
-      } else {
+    // Set from & to as empty objects to be filled
+    props.start = {};
+    props.end = {};
 
-        from = window.getComputedStyle(me.target);
+    /** If we're dealing with a plain object, just set the start & end values */
+    if ( !isElement ) {
 
-        for (key in to){
+      for (key in end) {
+        props.start[key] = start[key];
+        props.end[key] = end[key];
+      }
 
-          if ( transforms[key] ) {
-            hasTransforms = true;
-          } else {
+    } else {
+      /** If it's an element, we have to get the current styles */
+      start = window.getComputedStyle(obj);
 
-            propName = $.prefixedProp(key);
+      for (key in end){
 
-            start = from[propName];
-            end = to[key];
+        if ( transforms[key] ) {
+          hasTransforms = true;
+        } else {
 
-            /** If not using Element.animate, split the values into an array containing the number and the unit, e.g. [100,'px'] */
-            if ( !me.supportAnimate ) {
-              start = getNumberUnit(start);
-              end = getNumberUnit(end);
+          propName = $.prefixedProp(key);
 
+          startValue = start[propName];
+          endValue = end[key];
+
+          /** If not using Element.animate, split the values into an array containing the number and the unit, e.g. [100,'px'] */
+          if ( !supportAnimate ) {
+            startValue  = getNumberUnit(startValue);
+            endValue  = getNumberUnit(endValue);
 /*
-              if ( start[1] !== end[1] ) {
-                console.log('conversion needed!',start,end);
-              }
-*/
+            if ( start[1] !== end[1] ) {
+              console.log('conversion needed!',start,end);
             }
-
-            me.from[propName] = start;
-            me.to[propName] = end;
-
-            delete to[key];
+*/
           }
 
+          props.start[propName] = startValue;
+          props.end[propName] = endValue;
+
+          delete end[key];
         }
 
-        // Set up leftover transforms.
-        if ( hasTransforms ){
+      }
+
+      // Set up leftover transforms.
+      if ( hasTransforms ){
+
+        // If using Element.animate, flatten the transforms object to a single transform string.
+        if ( supportAnimate ) {
+
+          // Use the existing transform style for the start.
+          props.start[transformProp] = start[transformProp];
+          props.end[transformProp] = '';
+
+          for (key in end){
+            props.end[transformProp] += transforms[key](end[key]);
+          }
+
+        } else {
 
           // Get current transform values if element to preserve existing transforms and to animate smoothly to new transform values.
-          me.transforms = getCurrentTransforms(me.obj);
+          hasTransforms = getCurrentTransforms(start);
 
-          for (key in to){
+          for (key in end){
             /** Get the current value of the transform or get the default value from our transforms object */
-            me.transforms.from[key] = me.transforms.from[key] || transforms[key](null,true);
-            me.transforms.to[key] = to[key];
+            hasTransforms.start[key] = getNumberUnit( hasTransforms.start[key] || transforms[key](null,true) );
+            hasTransforms.end[key] = getNumberUnit(end[key]);
           }
 
-          // If using Element.animate, flatten the transforms object to a single transform string.
-          if ( me.supportAnimate ) {
-            me.from[transformProp] = me.obj[transformProp];
-            me.to[transformProp] = '';
+          props.transforms = hasTransforms;
 
-            for (key in me.transforms.to){
-              transformFn = transforms[key];
-              //me.from[transformProp] += transformFn(me.transforms.from[key]);
-              me.to[transformProp] += transformFn(me.transforms.to[key]);
-            }
-
-            delete me.transforms;
-          } else {
-
-            for (key in me.transforms.to){
-              me.transforms.from[key] = getNumberUnit(me.transforms.from[key]);
-              me.transforms.to[key] = getNumberUnit(me.transforms.to[key]);
-            }
-
-          }
-        }
-
-      }
-
-    },
-
-    play: function(repeat){
-      var me = this;
-
-      if ( !me.playing ) {
-        me._s = Date.now() + ( repeat ? 0 : me.delay );
-        me.playing = true;
-      }
-      if ( me.start ) { me.start(); }
-
-      // Use element.animate if supported
-      if ( me.supportAnimate && me.target.animate ) {
-
-        // Use Element.animate to tween the properties.
-        me._anim = me.target.animate([me.from,me.to],{
-          duration: me.duration,
-          easing: me.easing,
-          iterations: me.iterations,
-          direction: me.direction,
-          delay: me.delay
-        });
-
-        /** Prevent issues with `fill: both` preventing animations of transforms from working */
-        var endState;
-        if ( (me.direction === 'alternate' && me.iterations % 2 ) || (me.direction === 'normal') ) {
-          endState = me.to;
-        }
-
-        me._anim.addEventListener('finish',function(e){
-
-          if ( endState ) {
-            /** Apply the end state styles */
-            for (key in endState){
-              me.obj[key] = endState[key];
-            }
-          }
-
-          if ( me.complete ) { me.complete(); }
-        });
-
-
-      } else {
-        if ( me.direction === 'reverse' ) { me.reversed = true; }
-        me.easing = $.isString(me.easing) ? easing[me.easing] : me.easing;
-        var index = animations.indexOf(me);
-        if ( index == -1 ) { animations.push(me); }
-        animations.play();
-      }
-
-      return me;
-    },
-
-    stop: function(){
-      this.playing = false;
-      if ( me._anim ) { me._anim.cancel(); }
-      return this;
-    },
-
-    render: function(){
-
-      var me = this,
-          now = Date.now(),
-          progress, delta, key, from, to, transform;
-
-      if ( !me.playing ) { return; }
-      /** If a delay was set, the animation may be 'rendering' while the current time is still less than start time. */
-      if ( now < me._s ) { return true; }
-
-      progress = ( now - me._s ) / me.duration;
-      if ( progress > 1 ) { progress = 1; }
-
-      delta = me.easing( me.reversed ? 1 - progress : progress );
-
-      // Animate all normal properties or styles
-      for (key in me.to){
-        me.obj[key] = getDeltaValue(delta, me.from[key], me.to[key]);
-      }
-
-      // Animate all transforms, grouped together.
-      if ( me.isElement && me.transforms ) {
-        transform = '';
-        for (key in me.transforms.to){
-          from = me.transforms.from[key];
-          to = me.transforms.to[key];
-          transform += transforms[key]( getDeltaValue(delta, from, to) );
-        }
-        me.obj[transformProp] = transform;
-      }
-
-      if ( me.progress && me.progress() === false ) { return false; }
-
-      if ( progress >= 1 ) {
-        me.playing = false;
-        if ( me.direction === 'alternate' ) { me.reversed = !me.reversed; }
-        if ( me.iterations <= 1 ) {
-          if ( me.complete ) { me.complete(); }
-          return false;
-        } else {
-          if ( me.iterations > 1 ) { me.iterations--; }
-          me.play(true);
         }
       }
-
-      return true;
     }
 
+    return props;
+  }
+
+
+////////////////////////////////////////
+
+
+  function noop(){}
+
+  var defaultOpts = {
+        iterations: 1,
+        duration: 400,
+        easing: 'linear',
+
+        delay: 0,
+        stagger: 0,
+
+        reversed: false,
+        direction: 'normal',
+        fill: 'both',
+
+        start: noop,
+        complete: noop,
+        progress: noop
+      };
+
+
+  function Animation(obj, end, opts, i){
+
+    opts = $.extend({}, defaultOpts, opts);
+
+    var isElement = obj.nodeType,
+        supportAnimate = isElement && (!opts.disableAnimate && obj.animate),
+
+        stagger = opts.stagger * i,
+
+        /** Object to apply the animation to. If element, use the style, otherwise apply it to the target itself. */
+        target = isElement ? obj.style : obj,
+
+        /** Properties to animate */
+        props = buildProps(obj, target, end, isElement, supportAnimate),
+        startValues = props.start,
+        endValues = props.end,
+
+        render = noop;
+
+    opts.start.call(obj,obj,i);
+
+    // Use element.animate if supported
+    if ( supportAnimate ) {
+
+      opts.delay += stagger;
+
+      // Use Element.animate to tween the properties.
+      render = obj.animate([startValues,endValues],opts);
+
+      /** Prevent issues with `fill: both` preventing animations of transforms from working */
+      var endState;
+      if ( (direction === 'alternate' && iterations % 2 ) || (direction === 'normal') ) {
+        endState = endValues;
+      }
+
+      render.addEventListener('finish',function(e){
+
+        if ( endState ) {
+          /** Apply the end state styles */
+          for (key in endState){
+            target[key] = endState[key];
+          }
+        }
+
+        opts.complete.call(obj,obj,i);
+      });
+
+    } else {
+
+      var duration = opts.duration,
+          delay = opts.delay,
+          now = Date.now(),
+          startTime = now + delay + stagger,
+
+          easing = Bezier(opts.easing) || easings.linear,
+          iterations = opts.iterations,
+          direction =  opts.direction,
+          reversed = ( direction === 'reverse' || direction === 'alternate-reverse' ),
+
+          transformValues = props.transforms,
+
+          progress = 0,
+          delta, key, transform;
+
+      render = function(){
+
+        now = Date.now();
+
+        /** Don't run the animation until after the start time in case a delay was set  */
+        if ( now < startTime ) { return; }
+
+        progress = ( now - startTime ) / duration;
+        if ( progress > 1 ) { progress = 1; }
+
+        delta = easing( reversed ? 1 - progress : progress );
+
+        /** Animate all normal properties or styles */
+        for (key in props.end){
+          target[key] = getDeltaValue(delta, props.start[key], props.end[key]);
+        }
+
+        /** Animate all transforms, grouped together. */
+        if ( isElement && transformValues ) {
+          transform = '';
+          for (key in transformValues.end){
+            transform += transforms[key]( getDeltaValue(delta, transformValues.start[key], transformValues.end[key]) );
+          }
+          target[transformProp] = transform;
+        }
+
+        if ( opts.progress() === false ) { return false; }
+
+        if ( progress >= 1 ) {
+          if ( direction === 'alternate' || direction === 'alternate-reverse' ) { reversed = !reversed; }
+          if ( iterations <= 1 ) {
+            opts.complete.call(obj,obj,i);
+            return false;
+          } else {
+            if ( iterations > 1 ) { iterations--; }
+            startTime = now;
+          }
+        }
+
+      }
+
+      animations.push(render);
+      animations.play();
+    }
+
+    return render;
+  }
+
+
+  $.animate = function(obj,end,opts){
+    obj = obj.length ? obj : [obj];
+
+    return $.each(obj,function(v,i){
+      return new Animation(v,end,opts,i);
+    })
   };
 
-  $.animate = function(obj,to,duration,opts){
-    return new Animation(obj,to,duration,opts);
-  };
-
-  $.fn.animate = function(to,duration,opts){
+  $.fn.animate = function(end,opts){
     return this.each(function(v,i){
-      return new Animation(v,to,duration,opts,i);
+      return new Animation(v,end,opts,i);
     })
   };
 
