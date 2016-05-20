@@ -266,84 +266,77 @@
 ////////////////////////////////////////
 
 
-  function buildProps(obj, start, end, isElement, supportAnimate){
+  function buildStyles(obj, end, supportAnimate){
     var props = {},
-        key, propName, startValue, endValue, hasTransforms, transformFn;
+        start, key, propName, startValue, endValue, hasTransforms, transformFn;
 
     // Set from & to as empty objects to be filled
     props.start = {};
     props.end = {};
 
-    /** If we're dealing with a plain object, just set the start & end values */
-    if ( !isElement ) {
+    /** If it's an element, we have to get the current styles */
+    start = window.getComputedStyle(obj);
 
-      for (key in end) {
-        props.start[key] = start[key];
-        props.end[key] = end[key];
-      }
+    for (key in end){
 
-    } else {
-      /** If it's an element, we have to get the current styles */
-      start = window.getComputedStyle(obj);
+      if ( transforms[key] ) {
+        hasTransforms = true;
+      } else {
 
-      for (key in end){
+        propName = $.prefixedProp(key);
+        console.log(key,propName);
 
-        if ( transforms[key] ) {
-          hasTransforms = true;
-        } else {
+        //if ( key == 'opacity' ) { console.log(key, propName, start[propName]); }
 
-          propName = $.prefixedProp(key);
+        startValue = start[propName];
+        endValue = end[key];
 
-          startValue = start[propName];
-          endValue = end[key];
-
-          /** If not using Element.animate, split the values into an array containing the number and the unit, e.g. [100,'px'] */
-          if ( !supportAnimate ) {
-            startValue  = getNumberUnit(startValue);
-            endValue  = getNumberUnit(endValue);
+        /** If not using Element.animate, split the values into an array containing the number and the unit, e.g. [100,'px'] */
+        if ( !supportAnimate ) {
+          startValue  = getNumberUnit(startValue);
+          endValue  = getNumberUnit(endValue);
 /*
-            if ( start[1] !== end[1] ) {
-              console.log('conversion needed!',start,end);
-            }
-*/
+          if ( start[1] !== end[1] ) {
+            console.log('conversion needed!',start,end);
           }
-
-          props.start[propName] = startValue;
-          props.end[propName] = endValue;
-
-          delete end[key];
+*/
         }
 
+        props.start[propName] = startValue;
+        props.end[propName] = endValue;
+
+        delete end[key];
       }
 
-      // Set up leftover transforms.
-      if ( hasTransforms ){
+    }
 
-        // If using Element.animate, flatten the transforms object to a single transform string.
-        if ( supportAnimate ) {
+    // Set up leftover transforms.
+    if ( hasTransforms ){
 
-          // Use the existing transform style for the start.
-          props.start[transformProp] = start[transformProp];
-          props.end[transformProp] = '';
+      // If using Element.animate, flatten the transforms object to a single transform string.
+      if ( supportAnimate ) {
 
-          for (key in end){
-            props.end[transformProp] += transforms[key](end[key]);
-          }
+        // Use the existing transform style for the start.
+        props.start[transformProp] = start[transformProp];
+        props.end[transformProp] = '';
 
-        } else {
-
-          // Get current transform values if element to preserve existing transforms and to animate smoothly to new transform values.
-          hasTransforms = getCurrentTransforms(start);
-
-          for (key in end){
-            /** Get the current value of the transform or get the default value from our transforms object */
-            hasTransforms.start[key] = getNumberUnit( hasTransforms.start[key] || transforms[key](null,true) );
-            hasTransforms.end[key] = getNumberUnit(end[key]);
-          }
-
-          props.transforms = hasTransforms;
-
+        for (key in end){
+          props.end[transformProp] += transforms[key](end[key]);
         }
+
+      } else {
+
+        // Get current transform values if element to preserve existing transforms and to animate smoothly to new transform values.
+        hasTransforms = getCurrentTransforms(start);
+
+        for (key in end){
+          /** Get the current value of the transform or get the default value from our transforms object */
+          hasTransforms.start[key] = getNumberUnit( hasTransforms.start[key] || transforms[key](null,true) );
+          hasTransforms.end[key] = getNumberUnit(end[key]);
+        }
+
+        props.transforms = hasTransforms;
+
       }
     }
 
@@ -369,136 +362,161 @@
         fill: 'both',
 
         start: noop,
+        progress: noop,
         complete: noop,
-        progress: noop
+        allComplete: noop
       };
 
 
-  function Animation(obj, end, opts, i){
+  function Animator(objects, end, opts, i){
 
+    objects = objects.length ? objects : [objects];
     opts = $.extend({}, defaultOpts, opts);
 
-    var isElement = obj.nodeType,
-        supportAnimate = isElement && (!opts.disableAnimate && obj.animate),
-
-        stagger = opts.stagger * i,
-
-        /** Object to apply the animation to. If element, use the style, otherwise apply it to the target itself. */
-        target = isElement ? obj.style : obj,
-
-        /** Properties to animate */
-        props = buildProps(obj, target, end, isElement, supportAnimate),
-        startValues = props.start,
-        endValues = props.end,
-
-        render = noop;
-
-    opts.start.call(obj,obj,i);
-
-    // Use element.animate if supported
-    if ( supportAnimate ) {
-
-      opts.delay += stagger;
-
-      // Use Element.animate to tween the properties.
-      render = obj.animate([startValues,endValues],opts);
-
-      /** Prevent issues with `fill: both` preventing animations of transforms from working */
-      var endState;
-      if ( (direction === 'alternate' && iterations % 2 ) || (direction === 'normal') ) {
-        endState = endValues;
-      }
-
-      render.addEventListener('finish',function(e){
-
-        if ( endState ) {
-          /** Apply the end state styles */
-          for (key in endState){
-            target[key] = endState[key];
-          }
-        }
-
-        opts.complete.call(obj,obj,i);
-      });
-
-    } else {
-
-      var duration = opts.duration,
-          delay = opts.delay,
-          now = Date.now(),
-          startTime = now + delay + stagger,
-
-          easing = Bezier(opts.easing) || easings.linear,
-          iterations = opts.iterations,
-          direction =  opts.direction,
-          reversed = ( direction === 'reverse' || direction === 'alternate-reverse' ),
-
-          transformValues = props.transforms,
-
-          progress = 0,
-          delta, key, transform;
-
-      render = function(){
-
-        now = Date.now();
-
-        /** Don't run the animation until after the start time in case a delay was set  */
-        if ( now < startTime ) { return; }
-
-        progress = ( now - startTime ) / duration;
-        if ( progress > 1 ) { progress = 1; }
-
-        delta = easing( reversed ? 1 - progress : progress );
-
-        /** Animate all normal properties or styles */
-        for (key in props.end){
-          target[key] = getDeltaValue(delta, props.start[key], props.end[key]);
-        }
-
-        /** Animate all transforms, grouped together. */
-        if ( isElement && transformValues ) {
-          transform = '';
-          for (key in transformValues.end){
-            transform += transforms[key]( getDeltaValue(delta, transformValues.start[key], transformValues.end[key]) );
-          }
-          target[transformProp] = transform;
-        }
-
-        if ( opts.progress() === false ) { return false; }
-
-        if ( progress >= 1 ) {
-          if ( direction === 'alternate' || direction === 'alternate-reverse' ) { reversed = !reversed; }
-          if ( iterations <= 1 ) {
+    var animationsRemaining = objects.length,
+        finished = function(obj,i){
             opts.complete.call(obj,obj,i);
-            return false;
-          } else {
-            if ( iterations > 1 ) { iterations--; }
-            startTime = now;
-          }
-        }
+            animationsRemaining--;
+            if ( !animationsRemaining ) {
+              opts.allComplete.call(objects);
+            }
+          };
 
+    $.each(objects,function(obj,i){
+
+      var isElement = obj.nodeType,
+          supportAnimate = isElement && (!opts.disableAnimate && obj.animate),
+
+          /** Object to apply the animation to. If element, use the style, otherwise apply it to the target itself. */
+          target = isElement ? obj.style : obj,
+
+          /** Properties to animate */
+          props = {},
+          startValues = {},
+          endValues = {},
+
+          stagger = opts.stagger * i,
+          delay = opts.delay,
+
+          localOpts,
+          render = noop;
+
+      if ( isElement ){
+        props = buildStyles(obj, end, supportAnimate);
+        startValues = props.start;
+        endValues = props.end;
+      } else {
+        /** If we're dealing with a plain object, just set the start & end values */
+        for (key in end) {
+          startValues[key] = target[key];
+          endValues[key] = end[key];
+        }
       }
 
-      animations.push(render);
-      animations.play();
-    }
 
-    return render;
+      opts.start.call(obj,obj,i);
+
+      // Use element.animate if supported
+      if ( supportAnimate ) {
+
+        var localOpts = $.extend({},opts,{ delay: delay + stagger });
+
+        delay += stagger;
+        //opts.stagger = 0;
+
+        // Use Element.animate to tween the properties.
+        render = obj.animate([startValues,endValues],localOpts);
+
+        /** Prevent issues with `fill: both` preventing animations of transforms from working */
+        var endState;
+        if ( (direction === 'alternate' && iterations % 2 ) || (direction === 'normal') ) {
+          endState = endValues;
+        }
+
+        render.addEventListener('finish',function(e){
+
+          if ( endState ) {
+            /** Apply the end state styles */
+            for (key in endState){
+              target[key] = endState[key];
+            }
+          }
+          finished(obj,i);
+
+        });
+
+      } else {
+
+        var duration = opts.duration,
+            now = Date.now(),
+            startTime = now + delay + stagger,
+
+            easing = Bezier(opts.easing) || easings.linear,
+            iterations = opts.iterations,
+            direction =  opts.direction,
+            reversed = ( direction === 'reverse' || direction === 'alternate-reverse' ),
+
+            transformValues = props.transforms,
+
+            progress = 0,
+            delta, key, transform;
+
+        render = function(){
+
+          now = Date.now();
+
+          /** Don't run the animation until after the start time in case a delay was set  */
+          if ( now < startTime ) { return; }
+
+          progress = ( now - startTime ) / duration;
+          if ( progress > 1 ) { progress = 1; }
+
+          delta = easing( reversed ? 1 - progress : progress );
+
+          /** Animate all normal properties or styles */
+          for (key in endValues){
+            target[key] = getDeltaValue(delta, startValues[key], endValues[key]);
+          }
+
+          /** Animate all transforms, grouped together. */
+          if ( isElement && transformValues ) {
+            transform = '';
+            for (key in transformValues.end){
+              transform += transforms[key]( getDeltaValue(delta, transformValues.start[key], transformValues.end[key]) );
+            }
+            target[transformProp] = transform;
+          }
+
+          if ( opts.progress() === false ) { return false; }
+
+          if ( progress >= 1 ) {
+            if ( direction === 'alternate' || direction === 'alternate-reverse' ) { reversed = !reversed; }
+            if ( iterations <= 1 ) {
+              finished(obj,i);
+              return false;
+            } else {
+              if ( iterations > 1 && iterations !== Infinity ) { iterations--; }
+              startTime = now;
+            }
+          }
+
+        }
+
+        animations.push(render);
+        animations.play();
+      }
+
+      return render;
+    });
   }
 
 
   $.animate = function(obj,end,opts){
-    obj = obj.length ? obj : [obj];
-
-    return $.each(obj,function(v,i){
-      return new Animation(v,end,opts,i);
-    })
+    return new Animator(obj,end,opts);
   };
 
   $.fn.animate = function(end,opts){
-    return this.each(function(v,i){
-      return new Animation(v,end,opts,i);
-    })
+    return new Animator(this,end,opts);
   };
 
 })(window.$);
