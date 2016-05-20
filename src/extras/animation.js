@@ -359,143 +359,167 @@
       };
 
 
-  function Animator(objects, end, opts, i){
+  function Animator(objects, keyframes, opts, i){
 
     objects = objects.length ? objects : [objects];
+    keyframes = keyframes.length ? keyframes : [keyframes];
     opts = $.extend({}, defaultOpts, opts);
 
     var animationsRemaining = objects.length,
+
+        currentFrame = 0,
+        totalFrames = keyframes.length,
+
         finished = function(obj,i){
             opts.complete.call(obj,obj,i);
+
             animationsRemaining--;
             if ( !animationsRemaining ) {
               opts.allComplete.call(objects);
+
+              currentFrame++;
+              if ( currentFrame < totalFrames ) {
+                animationsRemaining = objects.length;
+                console.log('keyframes',currentFrame,keyframes[currentFrame]);
+                runKeyframe(keyframes[currentFrame]);
+              }
             }
           };
 
-    $.each(objects,function(obj,i){
+    function runKeyframe(keyframe){
 
-      var isElement = obj.nodeType,
-          supportAnimate = isElement && (!opts.disableAnimate && obj.animate),
-
-          /** Object to apply the animation to. If element, use the style, otherwise apply it to the target itself. */
-          target = isElement ? obj.style : obj,
-
-          /** Properties to animate */
-          props = {},
-          startValues = {},
-          endValues = {},
-
-          stagger = opts.stagger * i,
-          delay = opts.delay,
-
-          render = noop;
-
-      if ( isElement ){
-
-        props = buildStyles(obj, end, supportAnimate);
-        startValues = props.start;
-        endValues = props.end;
-
-      } else {
-        /** If we're dealing with a plain object, just set the start & end values */
-        for (key in end) {
-          startValues[key] = target[key];
-          endValues[key] = end[key];
-        }
+      var frameOpts = opts;
+      if ( keyframe.length ) {
+        frameOpts = $.extend({},opts,keyframe[1]);
+        keyframe = keyframe[0];
       }
 
-      opts.start.call(obj,obj,i);
+      $.each(objects,function(obj,i){
 
-      // Use element.animate if supported
-      if ( supportAnimate ) {
+        var isElement = obj.nodeType,
+            supportAnimate = isElement && (!frameOpts.disableAnimate && obj.animate),
 
-        var localOpts = $.extend({},opts,{ delay: delay + stagger });
+            /** Object to apply the animation to. If element, use the style, otherwise apply it to the target itself. */
+            target = isElement ? obj.style : obj,
 
-        // Use Element.animate to tween the properties.
-        render = obj.animate([startValues,endValues],localOpts);
+            /** Properties to animate */
+            props = {},
+            startValues = {},
+            endValues = {},
 
-        /** Prevent issues with `fill: both` preventing animations of transforms from working */
-        var endState;
-        if ( (direction === 'alternate' && iterations % 2 ) || (direction === 'normal') ) {
-          endState = endValues;
+            stagger = frameOpts.stagger * i,
+            delay = frameOpts.delay,
+
+            render = noop;
+
+        if ( isElement ){
+
+          props = buildStyles(obj, keyframe, supportAnimate);
+          startValues = props.start;
+          endValues = props.end;
+
+        } else {
+          /** If we're dealing with a plain object, just set the start & end values */
+          for (key in keyframe) {
+            startValues[key] = target[key];
+            endValues[key] = keyframe[key];
+          }
         }
 
-        render.addEventListener('finish',function(e){
+        frameOpts.start.call(obj,obj,i);
 
-          if ( endState ) {
-            /** Apply the end state styles */
-            for (key in endState){
-              target[key] = endState[key];
+        // Use element.animate if supported
+        if ( supportAnimate ) {
+
+          var localOpts = $.extend({},frameOpts,{ delay: delay + stagger });
+
+          // Use Element.animate to tween the properties.
+          render = obj.animate([startValues,endValues],localOpts);
+
+          /** Prevent issues with `fill: both` preventing animations of transforms from working */
+          var endState;
+          if ( (direction === 'alternate' && iterations % 2 ) || (direction === 'normal') ) {
+            endState = endValues;
+          }
+
+          render.addEventListener('finish',function(e){
+
+            if ( endState ) {
+              /** Apply the end state styles */
+              for (key in endState){
+                target[key] = endState[key];
+              }
             }
-          }
-          finished(obj,i);
+            finished(obj,i);
 
-        });
+          });
 
-      } else {
+        } else {
 
-        var duration = opts.duration,
-            now = Date.now(),
-            startTime = now + delay + stagger,
+          var duration = opts.duration,
+              now = Date.now(),
+              startTime = now + delay + stagger,
 
-            easing = Bezier(opts.easing) || easings.linear,
-            iterations = opts.iterations,
-            direction =  opts.direction,
-            reversed = ( direction === 'reverse' || direction === 'alternate-reverse' ),
+              easing = Bezier(opts.easing) || easings.linear,
+              iterations = opts.iterations,
+              direction =  opts.direction,
+              reversed = ( direction === 'reverse' || direction === 'alternate-reverse' ),
 
-            transformValues = props.transforms,
+              transformValues = props.transforms,
 
-            progress = 0,
-            delta, key, transform;
+              progress = 0,
+              delta, key, transform;
 
-        render = function(){
+          render = function(){
 
-          now = Date.now();
+            now = Date.now();
 
-          /** Don't run the animation until after the start time in case a delay was set  */
-          if ( now < startTime ) { return; }
+            /** Don't run the animation until after the start time in case a delay was set  */
+            if ( now < startTime ) { return; }
 
-          progress = ( now - startTime ) / duration;
-          if ( progress > 1 ) { progress = 1; }
+            progress = ( now - startTime ) / duration;
+            if ( progress > 1 ) { progress = 1; }
 
-          delta = easing( reversed ? 1 - progress : progress );
+            delta = easing( reversed ? 1 - progress : progress );
 
-          /** Animate all normal properties or styles */
-          for (key in endValues){
-            target[key] = getDeltaValue(delta, startValues[key], endValues[key]);
-          }
-
-          /** Animate all transforms, grouped together. */
-          if ( isElement && transformValues ) {
-            transform = '';
-            for (key in transformValues.end){
-              transform += transforms[key]( getDeltaValue(delta, transformValues.start[key], transformValues.end[key]) );
+            /** Animate all normal properties or styles */
+            for (key in endValues){
+              target[key] = getDeltaValue(delta, startValues[key], endValues[key]);
             }
-            target[transformProp] = transform;
-          }
 
-          if ( opts.progress() === false ) { return false; }
-
-          if ( progress >= 1 ) {
-            if ( direction === 'alternate' || direction === 'alternate-reverse' ) { reversed = !reversed; }
-            if ( iterations <= 1 ) {
-              finished(obj,i);
-              return false;
-            } else {
-              if ( iterations > 1 && iterations !== Infinity ) { iterations--; }
-              startTime = now;
+            /** Animate all transforms, grouped together. */
+            if ( isElement && transformValues ) {
+              transform = '';
+              for (key in transformValues.end){
+                transform += transforms[key]( getDeltaValue(delta, transformValues.start[key], transformValues.end[key]) );
+              }
+              target[transformProp] = transform;
             }
+
+            if ( opts.progress() === false ) { return false; }
+
+            if ( progress >= 1 ) {
+              if ( direction === 'alternate' || direction === 'alternate-reverse' ) { reversed = !reversed; }
+              if ( iterations <= 1 ) {
+                finished(obj,i);
+                return false;
+              } else {
+                if ( iterations > 1 && iterations !== Infinity ) { iterations--; }
+                startTime = now;
+              }
+            }
+
           }
 
+          animations.push(render);
+          animations.play();
         }
 
-        animations.push(render);
-        animations.play();
-      }
+        return render;
+      });
+    }
 
-      return render;
-    });
+    runKeyframe(keyframes[currentFrame]);
   }
 
 
