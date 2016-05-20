@@ -6,11 +6,12 @@
 
 (function($){
 
-  var requestAnimationFrame = window.requestAnimationFrame ||
-                              window.webkitRequestAnimationFrame ||
-                              window.mozRequestAnimationFrame ||
-                              window.msRequestAnimationFrame ||
-                              function(callback){ window.setTimeout(callback, 20); }; // IE Fallback
+  var win = window,
+      requestAnimationFrame = win.requestAnimationFrame ||
+                              win.webkitRequestAnimationFrame ||
+                              win.mozRequestAnimationFrame ||
+                              win.msRequestAnimationFrame ||
+                              function(callback){ win.setTimeout(callback, 20); }; // IE Fallback
 
   /** Group all `requestAnimationFrame` calls into one for better performance. */
   var animations = [];
@@ -268,25 +269,46 @@
 
   function buildStyles(obj, end, supportAnimate){
     var props = {},
-        start, key, propName, startValue, endValue, hasTransforms, transformFn;
+        objTransforms = [],
+        i, len,
+        start, key, propName, startValue, endValue, hasTransforms;
 
     // Set from & to as empty objects to be filled
     props.start = {};
     props.end = {};
 
     /** If it's an element, we have to get the current styles */
-    start = window.getComputedStyle(obj);
+    start = win.getComputedStyle(obj);
+
+    if ( supportAnimate ) {
+      // Use the existing transform style for the start.
+      props.start[transformProp] = start[transformProp];
+      props.end[transformProp] = '';
+    } else {
+      // Get current transform values if element to preserve existing transforms and to animate smoothly to new transform values.
+      hasTransforms = getCurrentTransforms(start);
+      props.transforms = hasTransforms;
+    }
 
     for (key in end){
 
       if ( transforms[key] ) {
-        hasTransforms = true;
+
+        // If using Element.animate, flatten the transforms object to a single transform string.
+        if ( supportAnimate ) {
+
+          props.end[transformProp] += transforms[key](end[key]);
+
+        } else {
+
+          hasTransforms.start[key] = getNumberUnit( hasTransforms.start[key] || transforms[key](null,true) );
+          hasTransforms.end[key] = getNumberUnit(end[key]);
+
+        }
+
       } else {
 
         propName = $.prefixedProp(key);
-        console.log(key,propName);
-
-        //if ( key == 'opacity' ) { console.log(key, propName, start[propName]); }
 
         startValue = start[propName];
         endValue = end[key];
@@ -305,39 +327,8 @@
         props.start[propName] = startValue;
         props.end[propName] = endValue;
 
-        delete end[key];
       }
 
-    }
-
-    // Set up leftover transforms.
-    if ( hasTransforms ){
-
-      // If using Element.animate, flatten the transforms object to a single transform string.
-      if ( supportAnimate ) {
-
-        // Use the existing transform style for the start.
-        props.start[transformProp] = start[transformProp];
-        props.end[transformProp] = '';
-
-        for (key in end){
-          props.end[transformProp] += transforms[key](end[key]);
-        }
-
-      } else {
-
-        // Get current transform values if element to preserve existing transforms and to animate smoothly to new transform values.
-        hasTransforms = getCurrentTransforms(start);
-
-        for (key in end){
-          /** Get the current value of the transform or get the default value from our transforms object */
-          hasTransforms.start[key] = getNumberUnit( hasTransforms.start[key] || transforms[key](null,true) );
-          hasTransforms.end[key] = getNumberUnit(end[key]);
-        }
-
-        props.transforms = hasTransforms;
-
-      }
     }
 
     return props;
@@ -402,9 +393,11 @@
           render = noop;
 
       if ( isElement ){
+
         props = buildStyles(obj, end, supportAnimate);
         startValues = props.start;
         endValues = props.end;
+
       } else {
         /** If we're dealing with a plain object, just set the start & end values */
         for (key in end) {
@@ -412,7 +405,6 @@
           endValues[key] = end[key];
         }
       }
-
 
       opts.start.call(obj,obj,i);
 
