@@ -268,17 +268,16 @@
 
 
   function buildStyles(obj, end, supportAnimate){
-    var props = {},
-        objTransforms = [],
-        i, len,
-        start, key, propName, startValue, endValue, hasTransforms;
+    var props = {
+          // Set start & end as empty objects to be filled
+          start: {},
+          end: {}
+        },
 
-    // Set from & to as empty objects to be filled
-    props.start = {};
-    props.end = {};
+        /** If it's an element, we have to get the current styles */
+        start = win.getComputedStyle(obj),
 
-    /** If it's an element, we have to get the current styles */
-    start = win.getComputedStyle(obj);
+        key, propName, startValue, endValue, currentTransforms;
 
     if ( supportAnimate ) {
       // Use the existing transform style for the start.
@@ -286,37 +285,38 @@
       props.end[transformProp] = '';
     } else {
       // Get current transform values if element to preserve existing transforms and to animate smoothly to new transform values.
-      hasTransforms = getCurrentTransforms(start);
-      props.transforms = hasTransforms;
+      currentTransforms = getCurrentTransforms(start);
+      props.transforms = currentTransforms;
     }
 
     for (key in end){
 
+      endValue = end[key];
+
       if ( transforms[key] ) {
 
-        // If using Element.animate, flatten the transforms object to a single transform string.
+        /** If using Element.animate, flatten the transforms object to a single transform string. */
         if ( supportAnimate ) {
 
-          props.end[transformProp] += transforms[key](end[key]);
+          props.end[transformProp] += transforms[key](endValue);
 
         } else {
 
-          hasTransforms.start[key] = getNumberUnit( hasTransforms.start[key] || transforms[key](null,true) );
-          hasTransforms.end[key] = getNumberUnit(end[key]);
+          currentTransforms.start[key] = getNumberUnit( currentTransforms.start[key] || transforms[key](null,true) );
+          currentTransforms.end[key] = getNumberUnit(endValue);
 
         }
 
       } else {
 
+        /** Convert to vendor prefixed, camelCase property name */
         propName = $.prefixedProp(key);
-
         startValue = start[propName];
-        endValue = end[key];
 
         /** If not using Element.animate, split the values into an array containing the number and the unit, e.g. [100,'px'] */
         if ( !supportAnimate ) {
-          startValue  = getNumberUnit(startValue);
-          endValue  = getNumberUnit(endValue);
+          startValue = getNumberUnit(startValue);
+          endValue = getNumberUnit(endValue);
 /*
           if ( start[1] !== end[1] ) {
             console.log('conversion needed!',start,end);
@@ -389,7 +389,6 @@
           stagger = opts.stagger * i,
           delay = opts.delay,
 
-          localOpts,
           render = noop;
 
       if ( isElement ){
@@ -412,9 +411,6 @@
       if ( supportAnimate ) {
 
         var localOpts = $.extend({},opts,{ delay: delay + stagger });
-
-        delay += stagger;
-        //opts.stagger = 0;
 
         // Use Element.animate to tween the properties.
         render = obj.animate([startValues,endValues],localOpts);
