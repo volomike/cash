@@ -352,12 +352,16 @@
         direction: 'normal',
         fill: 'both',
 
-        start: noop,
-        progress: noop,
-        complete: noop,
-        allComplete: noop
-      };
+        start: noop, // animation start
+        complete: noop, // animation complete
 
+        itemStart: noop, // an item's animation has started
+        itemProgress: noop, // an item's values have changed (currently only for requestAnimationFrame animations)
+        itemComplete: noop, // an item's animation has completed
+
+        frameStart: noop, // a new keyframe has started
+        frameComplete: noop, // a keyframe has been completed
+      };
 
   function Animator(objects, keyframes, opts, i){
 
@@ -371,17 +375,19 @@
         totalFrames = keyframes.length,
 
         finished = function(obj,i){
-            opts.complete.call(obj,obj,i);
+
+            opts.itemComplete.call(obj,obj,i);
 
             animationsRemaining--;
             if ( !animationsRemaining ) {
-              opts.allComplete.call(objects);
+              opts.frameComplete.call(objects,objects,currentFrame);
 
               currentFrame++;
               if ( currentFrame < totalFrames ) {
                 animationsRemaining = objects.length;
-                console.log('keyframes',currentFrame,keyframes[currentFrame]);
                 runKeyframe(keyframes[currentFrame]);
+              } else {
+                opts.complete.call(objects,objects);
               }
             }
           };
@@ -389,10 +395,14 @@
     function runKeyframe(keyframe){
 
       var frameOpts = opts;
+
+      /** Split keyframe if array. */
       if ( keyframe.length ) {
         frameOpts = $.extend({},opts,keyframe[1]);
         keyframe = keyframe[0];
       }
+
+      frameOpts.frameStart.call(objects,objects,currentFrame);
 
       $.each(objects,function(obj,i){
 
@@ -426,7 +436,7 @@
           }
         }
 
-        frameOpts.start.call(obj,obj,i);
+        frameOpts.itemStart.call(obj,obj,i);
 
         // Use element.animate if supported
         if ( supportAnimate ) {
@@ -456,13 +466,13 @@
 
         } else {
 
-          var duration = opts.duration,
+          var duration = frameOpts.duration,
               now = Date.now(),
               startTime = now + delay + stagger,
 
-              easing = Bezier(opts.easing) || easings.linear,
-              iterations = opts.iterations,
-              direction =  opts.direction,
+              easing = Bezier(frameOpts.easing) || easings.linear,
+              iterations = frameOpts.iterations,
+              direction =  frameOpts.direction,
               reversed = ( direction === 'reverse' || direction === 'alternate-reverse' ),
 
               transformValues = props.transforms,
@@ -496,7 +506,7 @@
               target[transformProp] = transform;
             }
 
-            if ( opts.progress() === false ) { return false; }
+            if ( frameOpts.itemProgress.call(obj,obj,i) === false ) { return false; }
 
             if ( progress >= 1 ) {
               if ( direction === 'alternate' || direction === 'alternate-reverse' ) { reversed = !reversed; }
@@ -519,6 +529,7 @@
       });
     }
 
+    opts.start.call(objects,objects);
     runKeyframe(keyframes[currentFrame]);
   }
 
