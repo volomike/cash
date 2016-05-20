@@ -1,6 +1,6 @@
 "use strict";
 
-/*! cash-dom 1.3.2, https://github.com/kenwheeler/cash @license MIT */
+/*! cash-dom 1.3.3, https://github.com/kenwheeler/cash @license MIT */
 (function (root, factory) {
   if (typeof define === "function" && define.amd) {
     define(factory);
@@ -439,7 +439,7 @@
     css: function (prop, value) {
       if (isString(prop)) {
         prop = getPrefixedProp(prop);
-        return (value ? this.each(function (v) {
+        return (arguments.length > 1 ? this.each(function (v) {
           return v.style[prop] = value;
         }) : win.getComputedStyle(this[0])[prop]);
       }

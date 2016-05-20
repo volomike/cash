@@ -41,7 +41,7 @@ fn.extend({
   css(prop,value){
     if ( isString(prop) ) {
       prop = getPrefixedProp(prop);
-      return ( value ?
+      return ( arguments.length > 1 ?
         this.each(v => v.style[prop] = value ) :
         win.getComputedStyle(this[0])[prop]
       );
