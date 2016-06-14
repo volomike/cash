@@ -212,6 +212,8 @@ QUnit.test( "get", function( assert ) {
 QUnit.test( "index", function( assert ) {
   var indexFixture = $('.qsa-fixture').index();
   assert.equal(indexFixture, 3, "index Passed!" );
+  var indexFixture = $('#qunit-fixture').children().index('.qsa-fixture');
+  assert.equal(indexFixture, 3, "index Passed!" );
 });
 
 QUnit.test( "last", function( assert ) {
@@ -488,6 +490,8 @@ QUnit.test( "remove", function( assert ) {
 QUnit.test( "text", function( assert ) {
   $('.class-fixture').text('Text Content');
   assert.equal($('.class-fixture')[0].textContent, "Text Content", "text Passed!" );
+  $('.class-fixture').text(0);
+  assert.equal($('.class-fixture')[0].textContent, 0, "text Passed!" );
 });
 
 //Utils
