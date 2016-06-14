@@ -49,13 +49,13 @@ fn.extend({
     return this.each(v => {
         var eventCache = getData(v,'_cashEvents');
         if ( removeAll ) {
-          for ( key in eventCache ) {{
+          for ( key in eventCache ) {
             each(eventCache[key], event => event.remove(callback) );
           }
         } else {
           each(eventCache[eventName], event => event.remove(callback) );
         }
-        if ( !callback ) { eventCache[eventName] = []; }
+        if ( !callback && eventCache ) { eventCache[eventName] = []; }
       });
   },
 
