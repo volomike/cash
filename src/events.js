@@ -42,9 +42,19 @@ function CashEvent(node, eventName, delegate, originalCallback, runOnce) { // js
 fn.extend({
 
   off(eventName, callback) {
+
+    var removeAll = arguments.length === 0,
+        key;
+
     return this.each(v => {
         var eventCache = getData(v,'_cashEvents');
-        each(eventCache[eventName], event => event.remove(callback) );
+        if ( removeAll ) {
+          for ( key in eventCache ) {{
+            each(eventCache[key], event => event.remove(callback) );
+          }
+        } else {
+          each(eventCache[eventName], event => event.remove(callback) );
+        }
         if ( !callback ) { eventCache[eventName] = []; }
       });
   },
