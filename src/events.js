@@ -1,4 +1,9 @@
-function CashEvent(node, eventName, delegate, originalCallback, runOnce) { // jshint ignore:line
+function splitNamespace(name) {
+  var namespaceArray = name.split('.')
+  return ( name.indexOf('.') !== 0 ? [namespaceArray[0], namespaceArray.slice(1) ] : [null, namespaceArray] );
+}
+
+function CashEvent(node, eventName, namespaces, delegate, originalCallback, runOnce) { // jshint ignore:line
 
   var eventCache = getData(node,'_cashEvents') || setData(node, '_cashEvents', {}),
 
@@ -23,13 +28,14 @@ function CashEvent(node, eventName, delegate, originalCallback, runOnce) { // js
 
       },
 
-      remove = function(c){
-        if ( !c || originalCallback === c ) {
-          node.removeEventListener(eventName, callback);
-        }
+      remove = function(c, namespace){
+        if ( c && originalCallback !== c ) { return; }
+        if ( namespace && this.namespaces.indexOf(namespace) < 0 ) { return; }
+        node.removeEventListener(eventName, callback);
       };
 
   this.remove = remove;
+  this.namespaces = namespaces;
 
   node.addEventListener(eventName, callback);
 
@@ -43,17 +49,21 @@ fn.extend({
 
   off(eventName, callback) {
 
-    var removeAll = arguments.length === 0,
-        key;
+    var removeAll = ( arguments.length === 0 ),
+        event = splitNamespace(eventName),
+        key, namespace;
+
+    eventName = event[0];
+    namespace = event[1];
 
     return this.each(v => {
         var eventCache = getData(v,'_cashEvents');
         if ( removeAll ) {
           for ( key in eventCache ) {
-            each(eventCache[key], event => event.remove(callback) );
+            each(eventCache[key], event => event.remove(callback, namespace) );
           }
         } else {
-          each(eventCache[eventName], event => event.remove(callback) );
+          each(eventCache[eventName], event => event.remove(callback, namespace) );
         }
         if ( !callback && eventCache ) { eventCache[eventName] = []; }
       });
@@ -78,8 +88,10 @@ fn.extend({
       delegate = null;
     }
 
+    var event = splitNamespace(eventName);
+
     return this.each(v => {
-      return new CashEvent(v, eventName, delegate, callback, runOnce);
+      return new CashEvent(v, event[0], event[1], delegate, callback, runOnce);
     });
   },
 
