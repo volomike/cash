@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <title>Cash.fn.animate (Element.animate)</title>
+</head>
+<body>
+
+<style>
+.box {
+	width: 100px; height: 100px;
+	border-radius: 20px;
+	background: #ff4081;
+	display: inline-block;
+	margin: 0 10px 10px;
+	backface-visibility: hidden;
+}
+</style>
+
+<div class="box" style="opacity: 0"></div>
+<div class="box"></div>
+<div class="box"></div>
+<div class="box"></div>
+<div class="box"></div>
+<div class="box"></div>
+<div class="box"></div>
+<div class="box"></div>
+<div class="box"></div>
+
+
+<script src='../dist/cash.min.js'></script>
+<script src='../src/extras/animation.js'></script>
+<script>
+
+var frames = [
+
+	{ rotateZ: '360deg', scale: 0.5, opacity: 1 },
+	{ y: '300px', rotateZ: 0, scale: 1, opacity: 0.5 },
+	[{ y: '0px', rotateZ: '180deg', scale: 1, opacity: 1 },{ duration: 2000, stagger: 300 }],
+
+];
+
+var opts = {
+  		//easing: 'ease-in-out', // err: format; correct = 'ease-in-out', 'ease-in-out-quad' etc.
+      easing: 'cubic-bezier(.97,.01,.01,.99)',
+  		duration: 1000,
+  		//iterations: 2, // 1,2,3 --- Infinity
+  		delay: 0,
+  		stagger: 100
+    };
+
+var el = $('.box').css({ opacity: 0 }),
+		last = el.length;
+
+el.animate(frames,{
+	easing:			opts.easing,
+	duration:		opts.duration,
+	stagger:    opts.stagger,
+	itemComplete: function(){ console.log('one element\'s animation completed'); },
+	frameComplete: function(){ console.log('one keyframe completed'); },
+	complete: function(){ console.log('all animation keyframes completed'); }
+});
+
+
+////////////////////////////////////////
+
+/*
+
+  var $div = $("<div></div>").css({
+        background: 'red',
+        width: '100%',
+        maxWidth: '250px',
+        height: '100px',
+        transform: 'scaleX(0.5)'
+      });
+      $div2 = $div.clone().css({ background: 'blue' }),
+      $divs = $.merge($div,$div2);
+
+  $divs.prependTo(document.body)
+    .on('click',function(){
+
+      var $this = $(this);
+
+      $this.data('invert',!$this.data('invert'));
+
+      var props = {
+        maxWidth: (300 * Math.random()) + 'px',
+        rotate: ( $this.data('invert') ? '-180deg' : '0deg' )
+      };
+
+      $this.animate(props,{
+        duration: 1500
+      });
+
+    });
+
+  $divs.eq(0).animate({
+      scaleX: '1',
+      x: '300px',
+      opacity: 0.5,
+      //rotate: '-180deg',
+    },{
+      duration: 1500,
+      //delay: 1000,
+      iterations: Infinity,
+      direction: 'alternate',
+      easing: 'ease-in-out',
+      disableAnimate: false
+    })
+
+  $divs.eq(1).animate({
+      scaleX: '1',
+      x: '300px',
+      opacity: 0.5,
+      //rotate: '-180deg',
+    },{
+      duration: 1500,
+      //delay: 1000,
+      iterations: Infinity,
+      direction: 'alternate',
+      easing: 'ease-in-out',
+      disableAnimate: true
+    })
+
+
+  ////////////////////////////////////////
+
+  var obj = { x: 0, myNum: 0 };
+
+  var $code = $('<code />').prependTo(document.body);
+
+  var objAnim = $.animate(obj,{ x: 100, myNum: 100 },{
+    iterations: Infinity,
+    duration: 10000,
+    direction: 'alternate',
+
+    itemProgress: function(){ $code[0].innerText = Math.round(obj.x); }
+  });
+/**/
+</script>
+</body>
+</html>

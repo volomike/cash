@@ -11,7 +11,7 @@
                               win.webkitRequestAnimationFrame ||
                               win.mozRequestAnimationFrame ||
                               win.msRequestAnimationFrame ||
-                              function(callback){ win.setTimeout(callback, 20); }; // IE Fallback
+                              function(callback){ win.setTimeout(callback, 20); }; // IE9 Fallback
 
   /** Group all `requestAnimationFrame` calls into one for better performance. */
   var animations = [];
@@ -248,7 +248,7 @@
 
 ////////////////////////////////////////
 
-
+  /** Returns the current value for a property based on the delta, including the unit. */
   function getDeltaValue(delta,start,to){
     var end = to,
         suffix = 0;
@@ -266,7 +266,7 @@
 
 ////////////////////////////////////////
 
-
+  /** For DOM Elements, create the start & end objects for the animation based on the element's current style. */
   function buildStyles(obj, end, supportAnimate){
     var props = {
           // Set start & end as empty objects to be filled
@@ -363,7 +363,7 @@
         frameComplete: noop, // a keyframe has been completed
       };
 
-  function Animator(objects, keyframes, opts, i){
+  function Animator(objects, keyframes, opts){
 
     objects = objects.length ? objects : [objects];
     keyframes = keyframes.length ? keyframes : [keyframes];
